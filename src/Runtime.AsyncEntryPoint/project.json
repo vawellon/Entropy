@@ -1,0 +1,13 @@
+{
+    "configurations": {
+        "k10": {
+            "dependencies":  {
+                "System.Console":  "4.0.0.0",
+                "K.CommonFx": "0.1-alpha-*"
+            }
+        },
+        "net45":  {
+
+        }
+    }
+}
