@@ -2,6 +2,7 @@
     "pack-exclude": [],
     "dependencies": {
         "Microsoft.AspNet.Mvc": "6.0.0-*",
+        "Microsoft.AspNet.WebPages": "6.0.0-*",
         "Microsoft.AspNet.Server.WebListener": "1.0.0-*",
         "Microsoft.AspNet.Hosting": "1.0.0-*"
     },
