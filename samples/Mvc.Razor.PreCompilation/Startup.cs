@@ -12,6 +12,13 @@ namespace RazorPre
             {
                 services.AddMvc();
                 services.AddWebPages();
+
+                // This flag is a reasonable option when using precompilation and
+                // deploying to a remote server with kpm --no-source
+                services.ConfigureOptions<WebPagesOptions>(o =>
+                {
+                    o.UpdateRoutesFromPrecompilationAtStartup = true;
+                });
             });
 
             app.UseMvc();
