@@ -1,0 +1,38 @@
+﻿@{
+    Layout = "_Layout";
+    var banner = ViewData["banner"];
+}
+
+@if (banner != null)
+{
+<div class="alert alert-success">
+    <a href="#" class="close" data-dismiss="alert">&times;</a>
+    @banner
+</div>
+}
+
+<h1>Upload to blob storage sample</h1>
+@using (Html.BeginForm("Upload", "", FormMethod.Post, htmlAttributes: new { enctype = "multipart/form-data" }))
+{
+    <label>Name</label>
+    <div class="input-group">
+        <input type="text" class="form-control" name="name" />
+    </div>
+
+    <label>File</label>
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-addon">File 1: </span>
+            <input type="file" class="form-control" name="files" />
+        </div>
+
+        <div class="input-group">
+            <span class="input-group-addon">File 2: </span>
+            <input type="file" class="form-control" name="files" />
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-default">Submit</button>
+}
+
+
