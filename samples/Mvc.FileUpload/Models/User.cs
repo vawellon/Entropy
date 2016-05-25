@@ -14,7 +14,5 @@ namespace Mvc.FileUpload.Models
 
         [Required(ErrorMessage = "Zipcode is required")]
         public int Zipcode { get; set; }
-
-        public string CurriculumVitaeId { get; set; }
     }
 }
