@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -7,33 +8,34 @@ using Microsoft.Extensions.Configuration;
 
 public class Startup
 {
-    public void Configure(IApplicationBuilder app)
+    public void Configure(IApplicationBuilder app, IHostingEnvironment env)
     {
-        var builder = new ConfigurationBuilder();
-        builder.AddIniFile("Config.Providers.ini");
-        builder.AddEnvironmentVariables();
-        var config = builder.Build();
+        var config = new ConfigurationBuilder()
+            .SetBasePath(env.ContentRootPath)
+            .AddIniFile("Config.Providers.ini")
+            .Build();
 
         app.Run(async ctx =>
         {
             ctx.Response.ContentType = "text/plain";
 
-            Func<String, String> formatKeyValue = key => "[" + key + "] " + config[key] + "\r\n\r\n";
+            Func<String, String> formatKeyValue = key => "[" + key + "] " + config[key] + "\r\n";
             await ctx.Response.WriteAsync(formatKeyValue("Services:One.Two"));
             await ctx.Response.WriteAsync(formatKeyValue("Services:One.Two:Six"));
-            await ctx.Response.WriteAsync(formatKeyValue("Data:DefaultConnecection:ConnectionString"));
-            await ctx.Response.WriteAsync(formatKeyValue("Data:DefaultConnecection:Provider"));
+            await ctx.Response.WriteAsync(formatKeyValue("Data:DefaultConnection:ConnectionString"));
+            await ctx.Response.WriteAsync(formatKeyValue("Data:DefaultConnection:Provider"));
             await ctx.Response.WriteAsync(formatKeyValue("Data:Inventory:ConnectionString"));
             await ctx.Response.WriteAsync(formatKeyValue("Data:Inventory:Provider"));
-            await ctx.Response.WriteAsync(formatKeyValue("PATH"));
-            await ctx.Response.WriteAsync(formatKeyValue("COMPUTERNAME"));
         });
     }
 
     public static void Main(string[] args)
     {
+        var config = new ConfigurationBuilder().AddCommandLine(args).Build();
+
         var host = new WebHostBuilder()
             .UseKestrel()
+            .UseConfiguration(config)
             .UseIISIntegration()
             .UseStartup<Startup>()
             .Build();
