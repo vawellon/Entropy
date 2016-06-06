@@ -58,7 +58,7 @@ namespace EntropyTests.ConfigTests
                     }, logger, token, retryCount: 30);
 
                     var responseText = await response.Content.ReadAsStringAsync();
-                string expectedText =
+                    string expectedText =
 "[Services:One.Two] ValueOfKey-Services:One.Two\r\n" +
 "[Services:One.Two:Six] ValueOfKey-Services:One.Two:Six\r\n" +
 "[Data:DefaultConnection:ConnectionString] ValueOfKey-Data:DefaultConnection:ConnectionString\r\n" +
