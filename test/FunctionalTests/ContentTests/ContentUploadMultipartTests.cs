@@ -1,5 +1,6 @@
+using System;
+using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Server.Testing;
 using Microsoft.AspNetCore.Testing.xunit;
@@ -7,12 +8,12 @@ using Xunit;
 
 namespace EntropyTests.ContentTests
 {
-    public class ContentUploadFilesTests
+    public class ContentUploadMultipartTests
     {
-        private const string SiteName = "Content.Upload.Files";
+        private const string SiteName = "Content.Upload.Multipart";
 
         [Theory]
-        [InlineData(ServerType.Kestrel, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, "http://localhost:6400")]
+        [InlineData(ServerType.Kestrel, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, "http://localhost:6600")]
         public async Task RunSite_AllPlatforms(ServerType server, RuntimeFlavor runtimeFlavor, RuntimeArchitecture architecture, string applicationBaseUrl)
         {
             await RunSite(server, runtimeFlavor, architecture, applicationBaseUrl);
@@ -21,15 +22,15 @@ namespace EntropyTests.ContentTests
         [ConditionalTheory]
         [OSSkipCondition(OperatingSystems.Linux)]
         [OSSkipCondition(OperatingSystems.MacOSX)]
-        //[InlineData(ServerType.WebListener, RuntimeFlavor.Clr, RuntimeArchitecture.x86, "http://localhost:6401")]
-        [InlineData(ServerType.WebListener, RuntimeFlavor.Clr, RuntimeArchitecture.x64, "http://localhost:6402")]
-        //[InlineData(ServerType.WebListener, RuntimeFlavor.CoreClr, RuntimeArchitecture.x86, "http://localhost:6403")]
-        [InlineData(ServerType.WebListener, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, "http://localhost:6404")]
-        //[InlineData(ServerType.Kestrel, RuntimeFlavor.Clr, RuntimeArchitecture.x86, "http://localhost:6405")]
-        [InlineData(ServerType.Kestrel, RuntimeFlavor.Clr, RuntimeArchitecture.x64, "http://localhost:6406")]
-        //[InlineData(ServerType.Kestrel, RuntimeFlavor.CoreClr, RuntimeArchitecture.x86, "http://localhost:6407")]
+        //[InlineData(ServerType.WebListener, RuntimeFlavor.Clr, RuntimeArchitecture.x86, "http://localhost:6601")]
+        [InlineData(ServerType.WebListener, RuntimeFlavor.Clr, RuntimeArchitecture.x64, "http://localhost:6602")]
+        //[InlineData(ServerType.WebListener, RuntimeFlavor.CoreClr, RuntimeArchitecture.x86, "http://localhost:6603")]
+        [InlineData(ServerType.WebListener, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, "http://localhost:6604")]
+        //[InlineData(ServerType.Kestrel, RuntimeFlavor.Clr, RuntimeArchitecture.x86, "http://localhost:6605")]
+        [InlineData(ServerType.Kestrel, RuntimeFlavor.Clr, RuntimeArchitecture.x64, "http://localhost:6606")]
+        //[InlineData(ServerType.Kestrel, RuntimeFlavor.CoreClr, RuntimeArchitecture.x86, "http://localhost:6607")]
         // Already covered by all platforms:
-        //[InlineData(ServerType.WebListener, RuntimeFlavor.CoreClr, RuntimeArchitecture.x86, "http://localhost:6408")]
+        //[InlineData(ServerType.WebListener, RuntimeFlavor.CoreClr, RuntimeArchitecture.x86, "http://localhost:6608")]
         public async Task RunSite_WindowsOnly(ServerType server, RuntimeFlavor runtimeFlavor, RuntimeArchitecture architecture, string applicationBaseUrl)
         {
             await RunSite(server, runtimeFlavor, architecture, applicationBaseUrl);
@@ -37,8 +38,8 @@ namespace EntropyTests.ContentTests
 
         [ConditionalTheory]
         [OSSkipCondition(OperatingSystems.Windows)]
-        [InlineData(ServerType.Kestrel, RuntimeFlavor.Clr, RuntimeArchitecture.x64, "http://localhost:6409")]
-        [InlineData(ServerType.Kestrel, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, "http://localhost:6410")]
+        [InlineData(ServerType.Kestrel, RuntimeFlavor.Clr, RuntimeArchitecture.x64, "http://localhost:6609")]
+        [InlineData(ServerType.Kestrel, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, "http://localhost:6610")]
         public async Task RunSite_NonWindowsOnly(ServerType server, RuntimeFlavor runtimeFlavor, RuntimeArchitecture architecture, string applicationBaseUrl)
         {
             await RunSite(server, runtimeFlavor, architecture, applicationBaseUrl);
@@ -63,23 +64,20 @@ namespace EntropyTests.ContentTests
 
                     logger.LogResponseOnFailedAssert(response, responseText, () =>
                     {
-                        // verify description
-                        Assert.Contains("Form received: 1 entries.", responseText);
-                        Assert.Contains("Key: description; Value(s): TestUpload", responseText);
-
-                        // verify upload
-                        Assert.Contains("Files received: 1 entries.", responseText);
-                        Assert.Contains("filename=testfile.txt", responseText);
-                        Assert.Contains("Length: 5", responseText);
+                        Assert.Contains("Multipart received", responseText);
+                        Assert.Contains("Content-Type: application/x-www-form-urlencoded", responseText);
+                        Assert.Contains("Nested Multipart", responseText);
+                        Assert.Contains("Content-Type: text/plain", responseText);
                     });
                 });
         }
 
+
         private HttpContent CreateUploadFormContent()
         {
-            var content = new MultipartFormDataContent();
-            content.Add(new StringContent("TestUpload"), "description");
-            content.Add(new ByteArrayContent(Encoding.ASCII.GetBytes("hello")), "myfile1", "testfile.txt");
+            var content = new MultipartContent();
+            content.Add(new FormUrlEncodedContent(new Dictionary<string, string>()));
+            content.Add(new MultipartContent("nested") { new StringContent("Hello World") });
             return content;
         }
     }

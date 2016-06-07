@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Configuration;
 
 namespace Content.Upload.Multipart
 {
@@ -124,8 +125,11 @@ namespace Content.Upload.Multipart
 
         public static void Main(string[] args)
         {
+            var config = new ConfigurationBuilder().AddCommandLine(args).Build();
+
             var host = new WebHostBuilder()
                 .UseKestrel()
+                .UseConfiguration(config)
                 .UseIISIntegration()
                 .UseStartup<Startup>()
                 .Build();
