@@ -8,9 +8,9 @@ using System;
 
 namespace EntropyTests.ContentTests
 {
-    public class ContentUploadFilesTests
+    public class ContentUploadFormTests
     {
-        private const string SiteName = "Content.Upload.Files";
+        private const string SiteName = "Content.Upload.Form";
 
         [Theory]
         [InlineData(ServerType.Kestrel, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, "http://localhost:6400")]
@@ -62,26 +62,28 @@ namespace EntropyTests.ContentTests
 
                     var responseText = await response.Content.ReadAsStringAsync();
 
+                    Console.WriteLine(responseText);
+
                     logger.LogResponseOnFailedAssert(response, responseText, () =>
                     {
-                        // verify description
-                        Assert.Contains("Form received: 1 entries.", responseText);
-                        Assert.Contains("Key: description; Value(s): TestUpload", responseText);
-
-                        // verify upload
-                        Assert.Contains("Files received: 1 entries.", responseText);
-                        Assert.Contains("filename=testfile.txt", responseText);
-                        Assert.Contains("Length: 5", responseText);
+                        Assert.Contains("Form received: 4 entries.", responseText);
+                        Assert.Contains("Key: firstname; Value(s): Jane", responseText);
+                        Assert.Contains("Key: lastname; Value(s): Doe", responseText);
+                        Assert.Contains("Key: email; Value(s): jane.doe@example.com", responseText);
+                        Assert.Contains("Key: sex; Value(s): Female", responseText);
                     });
                 });
         }
+
 
         private HttpContent CreateUploadFormContent()
         {
             var content = new MultipartFormDataContent();
 
-            content.Add(new StringContent("TestUpload"), "description");
-            content.Add(new ByteArrayContent(Encoding.ASCII.GetBytes("hello")), "myfile1", "testfile.txt");
+            content.Add(new StringContent("Jane"), "firstname");
+            content.Add(new StringContent("Doe"), "lastname");
+            content.Add(new StringContent("jane.doe@example.com"), "email");
+            content.Add(new StringContent("Female"), "sex");
             return content;
         }
     }
