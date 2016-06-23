@@ -8,6 +8,11 @@ namespace Rewrite
 {
     public abstract class Rule
     {
+        /// <summary>
+        /// Apply the rule to the HttpContext.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns>If the rule matched the Http Context</returns>
         public abstract bool ApplyRule(HttpContext context);
     }
 }

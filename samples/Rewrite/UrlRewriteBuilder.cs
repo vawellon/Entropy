@@ -10,13 +10,17 @@ namespace Rewrite
     public class UrlRewriteBuilder
     {
         private List<Rule> _rules = new List<Rule>();
-        public void RewritePath(string regex, string newPath)
+        public void RewritePath(string regex, string newPath, bool stopRewriteOnSuccess)
         {
-            _rules.Add(new UrlRewriteRule { MatchPattern = new Regex(regex), OnMatch = newPath });
+            _rules.Add(new UrlRewriteRule { MatchPattern = new Regex(regex), OnMatch = newPath, StopApplyingRulesOnSuccess = stopRewriteOnSuccess });
         }
-        public void RedirectPath()
+        public void RedirectHttp()
         {
-            _rules.Add(new UrlRedirectRule { });
+            _rules.Add(new UrlRedirectHttp { });
+        }
+        public void RedirectPath(string regex, string newPath, bool stopRewriteOnSuccess)
+        {
+            _rules.Add(new UrlRedirectPath { MatchPattern = new Regex(regex), OnMatch = newPath, StopApplyingRules = stopRewriteOnSuccess });
         }
         public List<Rule> Build()
         {

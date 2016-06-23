@@ -7,20 +7,23 @@ using System.Threading.Tasks;
 
 namespace Rewrite
 {
-    public class UrlRewriteRule : Rule
+    public class UrlRewriteRule : RewriteRule
     {
         public Regex MatchPattern { get; set; }
         public string OnMatch { get; set; }
+        public override bool StopApplyingRulesOnSuccess { get; set; }
 
         public override bool ApplyRule(HttpContext context)
         {
-            var matches = MatchPattern.Match(context.Request.Path);
+            var pathAndQuery = String.Concat(context.Request.Path, context.Request.QueryString);
+            var matches = MatchPattern.Match(pathAndQuery);
             if (matches.Success)
             {
                 // New method here to translate the outgoing format string to the correct value.
                 try
                 {
                     context.Request.Path = String.Format(matches.Result(OnMatch));
+                    
                 }
                 catch (FormatException fe)
                 {

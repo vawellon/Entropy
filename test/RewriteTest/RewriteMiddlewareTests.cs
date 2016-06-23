@@ -37,7 +37,7 @@ namespace EntropyTests.RewriteTests
             HttpContext context = CreateRequest(basePath, requestPath);
             var builder = new ApplicationBuilder(serviceProvider: null);
             var rewriteBuilder = new UrlRewriteBuilder();
-            rewriteBuilder.RewritePath(matchPath, rewrite);
+            rewriteBuilder.RewritePath(matchPath, rewrite, false);
             builder.UseRewriter(rewriteBuilder.Build());
             var app = builder.Build();
             app.Invoke(context).Wait();
@@ -51,12 +51,13 @@ namespace EntropyTests.RewriteTests
             HttpContext context = CreateRequest(basePath, requestPath);
             var builder = new ApplicationBuilder(serviceProvider: null);
             var rewriteBuilder = new UrlRewriteBuilder();
-            rewriteBuilder.RewritePath(matchPath, rewrite);
+            rewriteBuilder.RewritePath(matchPath, rewrite, false);
             builder.UseRewriter(rewriteBuilder.Build());
             var app = builder.Build();
             app.Invoke(context).Wait();
             Assert.Equal(expected, context.Request.Path);
         }
+
         [Theory]
         [InlineData(@"/", "/", "/hey/hello", "https://")]
         public void PathMatchFunc_Redirect(string matchPath, string basePath, string requestPath, string rewrite)
@@ -65,7 +66,7 @@ namespace EntropyTests.RewriteTests
             context.Request.Scheme = "http";
             var builder = new ApplicationBuilder(serviceProvider: null);
             var rewriteBuilder = new UrlRewriteBuilder();
-            rewriteBuilder.RedirectPath();
+            rewriteBuilder.RedirectHttp();
             builder.UseRewriter(rewriteBuilder.Build());
             var app = builder.Build();
             app.Invoke(context).Wait();

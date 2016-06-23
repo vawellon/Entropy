@@ -36,10 +36,18 @@ namespace Rewrite
             }
             foreach (Rule rule in _options.Rules)
             {
-                if (!rule.ApplyRule(context))
+                if (rule.ApplyRule(context))
                 {
-                    return;
+                    if (rule is RedirectRule)
+                    {
+                        return;
+                    } else if (rule is RewriteRule)
+                    {
+                        await _next(context);
+                    }
                 }
+                // TODO check type of rule and go from there, either check class type or a private bool
+                // This will be used for the _next and return logic.
             }
             await _next(context);
         }

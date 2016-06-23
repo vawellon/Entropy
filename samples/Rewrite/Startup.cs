@@ -16,7 +16,7 @@ namespace Rewrite
         public void Configure(IApplicationBuilder app)
         {
             var rewriteBuilder = new UrlRewriteBuilder();
-            rewriteBuilder.RewritePath(new PathString("/hello"), new PathString("/hey"));
+            rewriteBuilder.RewritePath(new PathString("/hello"), new PathString("/hey"), false);
             app.UseRewriter(rewriteBuilder.Build());
             app.Run(context => context.Response.WriteAsync(context.Request.Path));
         }
