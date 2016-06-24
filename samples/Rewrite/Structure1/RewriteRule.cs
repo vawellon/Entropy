@@ -7,7 +7,7 @@ namespace Rewrite
 {
     public abstract class RewriteRule : Rule
     {
-        public abstract bool StopApplyingRulesOnSuccess { get; set; }
+        public bool StopApplyingRulesOnSuccess { get; set; }
 
     }
 }

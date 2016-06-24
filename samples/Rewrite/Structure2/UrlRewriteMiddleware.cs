@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Rewrite
+namespace Rewrite.Structure2
 {
     public class UrlRewriteMiddleware
     {
@@ -38,12 +38,13 @@ namespace Rewrite
             {
                 if (rule.ApplyRule(context))
                 {
-                    if (rule is RedirectRule)
+                    if (rule.IsRedirect)
                     {
                         return;
-                    } else if (rule is RewriteRule)
+                    }
+                    else if (rule.StopApplyingRulesOnSuccess)
                     {
-                        await _next(context);
+                        break;
                     }
                 }
                 // TODO check type of rule and go from there, either check class type or a private bool

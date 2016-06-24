@@ -1,14 +1,14 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Builder.Internal;
 using Microsoft.AspNetCore.Http;
-using Rewrite;
+using Rewrite.Structure2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace EntropyTests.RewriteTests
+namespace EntropyTests.Rewrite2Tests
 {
     public class RewriteMiddlewareTests
     {

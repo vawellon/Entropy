@@ -8,26 +8,32 @@ using System.Threading.Tasks;
 
 namespace Rewrite
 {
-    public class UrlRedirectHttp : RedirectRule
+    public class UrlRedirectScheme : RedirectRule
     {
+        public int? SSLPort { get; set; }
         public override bool ApplyRule(HttpContext context)
         {
             // TODO this only does http to https, add more features in the future. 
             if (!context.Request.IsHttps)
             {
-                //if (!string.Equals(context.Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
-                //{
-                //    context.Response.Redirect(new StatusCodeResult(StatusCodes.Status403Forbidden));
-                //}
-                //var optionsAccessor = context.RequestServices.GetServices<>();
-
+                var host = context.Request.Host;
+                if (SSLPort.HasValue && SSLPort.Value > 0)
+                {
+                    // a specific SSL port is specified
+                    host = new HostString(host.Host, SSLPort.Value);
+                }
+                else
+                {
+                    // clear the port
+                    host = new HostString(host.Host);
+                }
                 var req = context.Request;
                 var newUrl = string.Concat(
                     "https://",
-                    //host.ToUriComponent(),
-                    req.PathBase.ToUriComponent(),
-                    req.Path.ToUriComponent(),
-                    req.QueryString.ToUriComponent());
+                    host,
+                    req.PathBase,
+                    req.Path,
+                    req.QueryString);
                 context.Response.Redirect(newUrl);
                 return true;
             }
@@ -38,16 +44,22 @@ namespace Rewrite
     {
         public Regex MatchPattern { get; set; }
         public string OnMatch { get; set; }
-        public bool StopApplyingRules { get; set; }
+        public bool StopApplyingRulesOnSuccess { get; set; }
         public override bool ApplyRule(HttpContext context)
         {
             var matches = MatchPattern.Match(context.Request.Path);
             if (matches.Success)
             {
-                // New method here to translate the outgoing format string to the correct value.
                 try
                 {
                     context.Request.Path = String.Format(matches.Result(OnMatch));
+                    var req = context.Request;
+                    var newUrl = string.Concat(
+                        "https://",
+                        req.PathBase,
+                        req.Path,
+                        req.QueryString);
+                    context.Response.Redirect(newUrl);
                     return true;
                 }
                 catch (FormatException fe)
