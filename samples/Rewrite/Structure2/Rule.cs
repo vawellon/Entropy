@@ -6,6 +6,13 @@ using System.Threading.Tasks;
 
 namespace Rewrite.Structure2
 {
+    public enum Transformation
+    {
+        Rewrite,
+        TerminatingRewrite,
+        Redirect
+
+    }
     public abstract class Rule
     {
         /// <summary>
@@ -13,9 +20,8 @@ namespace Rewrite.Structure2
         /// </summary>
         /// <param name="context"></param>
         /// <returns>If the rule matched the Http Context</returns>
-        /// 
-        public bool IsRedirect { get; set; }
-        public bool StopApplyingRulesOnSuccess { get; set; }
+        public Transformation RuleState { get; set; }
         public abstract bool ApplyRule(HttpContext context);
+        public string Description { get; set; }
     }
 }

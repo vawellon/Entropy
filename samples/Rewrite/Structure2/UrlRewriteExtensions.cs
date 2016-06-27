@@ -30,6 +30,5 @@ namespace Rewrite.Structure2
             };
             return app.Use(next => new UrlRewriteMiddleware(next, options).Invoke);
         }
-
     }
 }

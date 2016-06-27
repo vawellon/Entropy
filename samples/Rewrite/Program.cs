@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 
-namespace Rewrite
+namespace Rewrite.Structure2
 {
     public class Program
     {

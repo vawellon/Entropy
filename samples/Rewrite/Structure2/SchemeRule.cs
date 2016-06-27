@@ -11,14 +11,10 @@ namespace Rewrite.Structure2
         public int? SSLPort { get; set; }
         public override bool ApplyRule(HttpContext context)
         {
+
             // TODO this only does http to https, add more features in the future. 
             if (!context.Request.IsHttps)
             {
-                if (!IsRedirect)
-                {
-                    context.Request.Scheme = "https";
-                    return true;
-                }
                 var host = context.Request.Host;
                 if (SSLPort.HasValue && SSLPort.Value > 0)
                 {
@@ -30,6 +26,14 @@ namespace Rewrite.Structure2
                     // clear the port
                     host = new HostString(host.Host);
                 }
+
+                if ((RuleState != Transformation.Redirect))
+                {
+                    context.Request.Scheme = "https";
+                    context.Request.Host = host;
+                    return true;
+                }
+             
                 var req = context.Request;
                 var newUrl = string.Concat(
                     "https://",

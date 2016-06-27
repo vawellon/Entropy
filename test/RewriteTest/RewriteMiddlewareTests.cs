@@ -12,18 +12,6 @@ namespace EntropyTests.RewriteTests
 {
     public class RewriteMiddlewareTests
     {
-        private static Task Success(HttpContext context)
-        {
-            context.Response.StatusCode = 200;
-            context.Items["test.PathBase"] = context.Request.PathBase.Value;
-            context.Items["test.Path"] = context.Request.Path.Value;
-            return Task.FromResult<object>(null);
-        }
-        private static void UseSuccess(IApplicationBuilder app)
-        {
-            app.Run(Success);
-        }
-
         [Theory]
         [InlineData("/foo", "", "/foo", "/yes")]
         [InlineData("/foo", "", "/foo/", "/yes")]

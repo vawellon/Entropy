@@ -38,11 +38,11 @@ namespace Rewrite.Structure2
             {
                 if (rule.ApplyRule(context))
                 {
-                    if (rule.IsRedirect)
+                    if (rule.RuleState == Transformation.Redirect)
                     {
                         return;
                     }
-                    else if (rule.StopApplyingRulesOnSuccess)
+                    else if (rule.RuleState == Transformation.TerminatingRewrite)
                     {
                         break;
                     }
