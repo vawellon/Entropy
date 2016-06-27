@@ -47,8 +47,6 @@ namespace Rewrite.Structure2
                         break;
                     }
                 }
-                // TODO check type of rule and go from there, either check class type or a private bool
-                // This will be used for the _next and return logic.
             }
             await _next(context);
         }

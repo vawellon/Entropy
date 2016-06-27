@@ -28,6 +28,10 @@ namespace Rewrite.Structure2
         {
             _rules.Add(new SchemeRule { SSLPort = sslPort, RuleState = Transformation.Redirect });
         }
+        public void CustomRule(Func<HttpContext, bool> onApplyRule, Transformation transform, string description = null)
+        {
+            _rules.Add(new FunctionalRule { OnApplyRule = onApplyRule, RuleState = transform, Description = description });
+        }
 
         public List<Rule> Build()
         {

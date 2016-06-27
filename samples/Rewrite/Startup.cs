@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using System.Text.RegularExpressions;
 
 namespace Rewrite.Structure2
 {
@@ -29,6 +30,7 @@ namespace Rewrite.Structure2
 
             var rewriteBuilder = new UrlRewriteBuilder();
             rewriteBuilder.RulesFromConfig(Configuration);
+
             app.UseRewriter(rewriteBuilder.Build());
             app.Run(context => context.Response.WriteAsync(context.Request.Path));
         }

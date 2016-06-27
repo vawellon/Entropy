@@ -61,20 +61,19 @@ namespace EntropyTests.Rewrite2Tests
             Assert.True(context.Response.Headers["location"].First().StartsWith("https"));
         }
 
-        [Theory]
+        [Theory(Skip = "Not Implemented")]
         [InlineData(@"/(?<name>\w+)?\?(\w+)=(?<name2>\d+)", @"", "/hey", "?hello=1", "/${name}/${name2}", "/hey/1")]
         public void PathMatchFunc_MoveQueryParamsToPath(string matchPath, string basePath, string requestPath, string queryString, string rewrite, string expected)
         {
-            return;
-            //HttpContext context = CreateRequest(basePath, requestPath);
-            //context.Request.QueryString = new QueryString(queryString);
-            //var builder = new ApplicationBuilder(serviceProvider: null);
-            //var rewriteBuilder = new UrlRewriteBuilder();
-            //rewriteBuilder.RewritePath(matchPath, rewrite, false);
-            //builder.UseRewriter(rewriteBuilder.Build());
-            //var app = builder.Build();
-            //app.Invoke(context).Wait();
-            //Assert.Equal(expected, context.Request.Path);
+            HttpContext context = CreateRequest(basePath, requestPath);
+            context.Request.QueryString = new QueryString(queryString);
+            var builder = new ApplicationBuilder(serviceProvider: null);
+            var rewriteBuilder = new UrlRewriteBuilder();
+            rewriteBuilder.RewritePath(matchPath, rewrite, false);
+            builder.UseRewriter(rewriteBuilder.Build());
+            var app = builder.Build();
+            app.Invoke(context).Wait();
+            Assert.Equal(expected, context.Request.Path);
         }
 
         [Fact]
