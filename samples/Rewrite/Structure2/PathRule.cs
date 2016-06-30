@@ -9,18 +9,29 @@ namespace Rewrite.Structure2
 {
     public class PathRule : Rule
     {
-        public Regex MatchPattern { get; set; }
-        public string OnMatch { get; set; }
+        public Regex Pattern { get; set; }
+        public string Substitution { get; set; }
+        public RuleFlags RuleFlags { get; set; }
 
         public override bool ApplyRule(HttpContext context)
         {
-            var matches = MatchPattern.Match(context.Request.Path);
+            var matches = Pattern.Match(context.Request.Path);
+            var previous = (ConditionContext) null;
             if (matches.Success)
             {
-                // New method here to translate the outgoing format string to the correct value.
+                // Initial match succeeded, now apply each condition
                 try
                 {
-                    var path = matches.Result(OnMatch);
+                    // TODO probably separate this into another method, just call ApplyConditions with the matches.
+                    foreach (var condition in Conditions) {
+                        previous = condition.ApplyCondition(matches, previous);
+                        if (!previous.Result)
+                        {
+                            return false;
+                        }
+                    }
+                    var path = matches.Result(Substitution);
+                    // TODO handle substituting last condition into path.
                     if (RuleState == Transformation.Redirect)
                     {
                         var req = context.Request;
@@ -34,7 +45,6 @@ namespace Rewrite.Structure2
                     }
                     else
                     {
-
                         context.Request.Path = path;
                     }
                     return true;

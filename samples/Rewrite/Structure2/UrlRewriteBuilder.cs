@@ -11,18 +11,18 @@ namespace Rewrite.Structure2
     public class UrlRewriteBuilder
     {
         private List<Rule> _rules = new List<Rule>();
-        public void RewritePath(string regex, string newPath, bool stopRewriteOnSuccess = false)
+        public void RewritePath(string regex, string newPath, bool stopRewriteOnSuccess = false, List<Condition> conditions = null)
         {
-            _rules.Add(new PathRule { MatchPattern = new Regex(regex), OnMatch = newPath, RuleState = stopRewriteOnSuccess ? Transformation.TerminatingRewrite : Transformation.Rewrite});
+            _rules.Add(new PathRule { Pattern = new Regex(regex), Conditions = conditions,Substitution = newPath, RuleState = stopRewriteOnSuccess ? Transformation.TerminatingRewrite : Transformation.Rewrite});
         }
         public void RewriteScheme(bool stopRewriteOnSuccess = false)
         {
             _rules.Add(new SchemeRule { RuleState = stopRewriteOnSuccess ? Transformation.TerminatingRewrite : Transformation.Rewrite });
         }
 
-        public void RedirectPath(string regex, string newPath, bool stopRewriteOnSuccess = false)
+        public void RedirectPath(string regex, string newPath, bool stopRewriteOnSuccess = false, List<Condition> conditions = null)
         {
-            _rules.Add(new PathRule { MatchPattern = new Regex(regex), OnMatch = newPath, RuleState = Transformation.Redirect});
+            _rules.Add(new PathRule { Pattern = new Regex(regex), Substitution = newPath, RuleState = Transformation.Redirect});
         }
         public void RedirectScheme(int? sslPort)
         {
@@ -58,6 +58,10 @@ namespace Rewrite.Structure2
                     case "RedirectScheme":
                         int i; // TODO is this the right style here?
                         RedirectScheme(Int32.TryParse(item["port"], out i) ? i : (int?) null);
+                        break;
+                    case "RewriteHost":
+                        break;
+                    case "RedirectHost":
                         break;
                     default:
                         break;
