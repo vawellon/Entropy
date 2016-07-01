@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using System.Text.RegularExpressions;
+using System.IO;
 
 namespace Rewrite.Structure2
 {
@@ -19,6 +20,7 @@ namespace Rewrite.Structure2
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+            var file = new FileStream("RewriteFile.txt", FileMode.OpenOrCreate, FileAccess.ReadWrite);
             builder.AddEnvironmentVariables();
             Configuration = builder.Build();
         }

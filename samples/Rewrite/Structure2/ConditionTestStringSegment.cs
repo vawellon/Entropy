@@ -9,7 +9,7 @@ namespace Rewrite.Structure2
     {
         Literal, ServerVariable, ConditionParameter, RuleParameter
     }
-    public class ConditionsTestStringSegment
+    public class ConditionTestStringSegment
     {
         public string Variable { get; set; }
         public StringCondtionType Type { get; set; }

@@ -9,15 +9,13 @@ namespace Rewrite.Structure2
     public class Condition
     {
 
-        public List<ConditionsTestStringSegment> TestString { get; set;}
+        public List<ConditionTestStringSegment> TestString { get; set;}
         public Regex CondPattern { get; set; }
 
         public Condition(string condition)
         {
-            TestString = ConditionParser.ParseCondition(condition);
+            TestString = ConditionParser.ParseConditionTestString(condition);
         }
-        // eventually a private call
-       
 
         public ConditionContext ApplyCondition(Match ruleVars, ConditionContext previous)
         {

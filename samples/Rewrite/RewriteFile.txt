@@ -1,0 +1,1 @@
+﻿RewriteRule  ^/$ /homepage\ .mobile.html
