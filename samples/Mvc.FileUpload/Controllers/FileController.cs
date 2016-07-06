@@ -43,9 +43,9 @@ namespace Mvc.FileUpload.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Upload()
         {
-            var contentType = MediaTypeHeaderValue.Parse(Request.ContentType);
+            var requestMediaType = MediaTypeHeaderValue.Parse(Request.ContentType);
 
-            if (!contentType.IsMultipartFormContentType())
+            if (!requestMediaType.IsMultipartFormContentType())
             {
                 return BadRequest($"Expected a multipart request, but got '{Request.ContentType}'.");
             }
@@ -54,7 +54,7 @@ namespace Mvc.FileUpload.Controllers
             var formAccumulator = new KeyValueAccumulator();
             string targetFilePath = null;
 
-            var boundary = contentType.GetBoundary(FormOptions.DefaultMultipartBoundaryLengthLimit);
+            var boundary = requestMediaType.GetBoundary(FormOptions.DefaultMultipartBoundaryLengthLimit);
             var reader = new MultipartReader(boundary, HttpContext.Request.Body);
 
             var section = await reader.ReadNextSectionAsync();
@@ -65,7 +65,6 @@ namespace Mvc.FileUpload.Controllers
 
                 if (contentDisposition.IsFileContentDisposition())
                 {
-                    var name = HeaderUtilities.RemoveQuotes(contentDisposition.Name) ?? string.Empty;
                     var fileName = HeaderUtilities.RemoveQuotes(contentDisposition.FileName) ?? string.Empty;
 
                     // Here the uploaded file is being copied to local disk but you can also for example, copy the
@@ -87,9 +86,9 @@ namespace Mvc.FileUpload.Controllers
                     // Do not limit the key name length here because the mulipart headers length
                     // limit is already in effect.
                     var key = HeaderUtilities.RemoveQuotes(contentDisposition.Name);
-                    MediaTypeHeaderValue mediaType;
-                    MediaTypeHeaderValue.TryParse(section.ContentType, out mediaType);
-                    var encoding = FilterEncoding(mediaType?.Encoding);
+                    MediaTypeHeaderValue sectionMediaType;
+                    MediaTypeHeaderValue.TryParse(section.ContentType, out sectionMediaType);
+                    var encoding = FilterEncoding(sectionMediaType?.Encoding);
                     using (var streamReader = new StreamReader(
                         section.Body,
                         encoding,
