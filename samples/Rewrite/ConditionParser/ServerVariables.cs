@@ -4,13 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Rewrite.Structure2
+namespace Rewrite.ConditionParser
 {
-    public class ServerVariables
+    public static class ServerVariables
     {
-        public string LookupServerVariable(HttpContext context, string variable)
+        public static string LookupServerVariable(HttpContext context, string variable)
         {
-            switch(variable)
+            switch (variable)
             {
                 case "HTTP_ACCEPT":
                     return null;

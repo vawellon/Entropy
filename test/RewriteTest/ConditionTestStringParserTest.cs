@@ -5,19 +5,19 @@ using System.Threading.Tasks;
 using Rewrite.Structure2;
 using Xunit;
 using Microsoft.AspNetCore.Testing;
-
+using Rewrite.ConditionParser;
 namespace RewriteTest
 {
-    public class ConditionParserTest
+    public class ConditionTestStringParserTest
     {
         [Fact]
         public void ConditionParser_SingleServerVariable()
         {
             var serverVar = "%{HTTPS}";
-            var result = ConditionParser.ParseConditionTestString(serverVar);
+            var result = ConditionTestStringParser.ParseConditionTestString(serverVar);
 
             var expected = new List<ConditionTestStringSegment>();
-            expected.Add(new ConditionTestStringSegment { Type = StringCondtionType.ServerVariable, Variable = "HTTPS" });
+            expected.Add(new ConditionTestStringSegment { Type = TestStringType.ServerParameter, Variable = "HTTPS" });
             Assert.True(CompareConditions(result, expected));
         }
 
@@ -25,11 +25,11 @@ namespace RewriteTest
         public void ConditionParser_MultipleServerVariables()
         {
             var serverVar = "%{HTTPS}%{REQUEST_URL}";
-            var result = ConditionParser.ParseConditionTestString(serverVar);
+            var result = ConditionTestStringParser.ParseConditionTestString(serverVar);
 
             var expected = new List<ConditionTestStringSegment>();
-            expected.Add(new ConditionTestStringSegment { Type = StringCondtionType.ServerVariable, Variable = "HTTPS" });
-            expected.Add(new ConditionTestStringSegment { Type = StringCondtionType.ServerVariable, Variable = "REQUEST_URL" });
+            expected.Add(new ConditionTestStringSegment { Type = TestStringType.ServerParameter, Variable = "HTTPS" });
+            expected.Add(new ConditionTestStringSegment { Type = TestStringType.ServerParameter, Variable = "REQUEST_URL" });
             Assert.True(CompareConditions(result, expected));
         }
 
@@ -37,10 +37,10 @@ namespace RewriteTest
         public void ConditionParser_ParseLiteral()
         {
             var serverVar = "Hello!";
-            var result = ConditionParser.ParseConditionTestString(serverVar);
+            var result = ConditionTestStringParser.ParseConditionTestString(serverVar);
 
             var expected = new List<ConditionTestStringSegment>();
-            expected.Add(new ConditionTestStringSegment { Type = StringCondtionType.Literal, Variable = "Hello!" });
+            expected.Add(new ConditionTestStringSegment { Type = TestStringType.Literal, Variable = "Hello!" });
             Assert.True(CompareConditions(result, expected));
         }
 
@@ -48,10 +48,10 @@ namespace RewriteTest
         public void ConditionParser_ParseConditionParameters()
         {
             var serverVar = "%1";
-            var result = ConditionParser.ParseConditionTestString(serverVar);
+            var result = ConditionTestStringParser.ParseConditionTestString(serverVar);
 
             var expected = new List<ConditionTestStringSegment>();
-            expected.Add(new ConditionTestStringSegment { Type = StringCondtionType.ConditionParameter, Variable = "1" });
+            expected.Add(new ConditionTestStringSegment { Type = TestStringType.ConditionParameter, Variable = "1" });
             Assert.True(CompareConditions(result, expected));
         }
 
@@ -59,11 +59,11 @@ namespace RewriteTest
         public void ConditionParser_ParseMultipleConditionParameters()
         {
             var serverVar = "%1%2";
-            var result = ConditionParser.ParseConditionTestString(serverVar);
+            var result = ConditionTestStringParser.ParseConditionTestString(serverVar);
 
             var expected = new List<ConditionTestStringSegment>();
-            expected.Add(new ConditionTestStringSegment { Type = StringCondtionType.ConditionParameter, Variable = "1" });
-            expected.Add(new ConditionTestStringSegment { Type = StringCondtionType.ConditionParameter, Variable = "2" });
+            expected.Add(new ConditionTestStringSegment { Type = TestStringType.ConditionParameter, Variable = "1" });
+            expected.Add(new ConditionTestStringSegment { Type = TestStringType.ConditionParameter, Variable = "2" });
             Assert.True(CompareConditions(result, expected));
         }
 
@@ -71,21 +71,21 @@ namespace RewriteTest
         public void ConditionParser_ParseRuleVariable()
         {
             var serverVar = "$1";
-            var result = ConditionParser.ParseConditionTestString(serverVar);
+            var result = ConditionTestStringParser.ParseConditionTestString(serverVar);
 
             var expected = new List<ConditionTestStringSegment>();
-            expected.Add(new ConditionTestStringSegment { Type = StringCondtionType.RuleParameter, Variable = "1" });
+            expected.Add(new ConditionTestStringSegment { Type = TestStringType.RuleParameter, Variable = "1" });
             Assert.True(CompareConditions(result, expected));
         }
         [Fact]
         public void ConditionParser_ParseMultipleRuleVariables()
         {
             var serverVar = "$1$2";
-            var result = ConditionParser.ParseConditionTestString(serverVar);
+            var result = ConditionTestStringParser.ParseConditionTestString(serverVar);
 
             var expected = new List<ConditionTestStringSegment>();
-            expected.Add(new ConditionTestStringSegment { Type = StringCondtionType.RuleParameter, Variable = "1" });
-            expected.Add(new ConditionTestStringSegment { Type = StringCondtionType.RuleParameter, Variable = "2" });
+            expected.Add(new ConditionTestStringSegment { Type = TestStringType.RuleParameter, Variable = "1" });
+            expected.Add(new ConditionTestStringSegment { Type = TestStringType.RuleParameter, Variable = "2" });
             Assert.True(CompareConditions(result, expected));
         }
 
@@ -93,12 +93,12 @@ namespace RewriteTest
         public void ConditionParser_ParserComplexRequest()
         {
             var serverVar = "%{HTTPS}/$1";
-            var result = ConditionParser.ParseConditionTestString(serverVar);
+            var result = ConditionTestStringParser.ParseConditionTestString(serverVar);
 
             var expected = new List<ConditionTestStringSegment>();
-            expected.Add(new ConditionTestStringSegment { Type = StringCondtionType.ServerVariable, Variable = "HTTPS" });
-            expected.Add(new ConditionTestStringSegment { Type = StringCondtionType.Literal, Variable = "/" });
-            expected.Add(new ConditionTestStringSegment { Type = StringCondtionType.RuleParameter, Variable = "1" });
+            expected.Add(new ConditionTestStringSegment { Type = TestStringType.ServerParameter, Variable = "HTTPS" });
+            expected.Add(new ConditionTestStringSegment { Type = TestStringType.Literal, Variable = "/" });
+            expected.Add(new ConditionTestStringSegment { Type = TestStringType.RuleParameter, Variable = "1" });
             Assert.True(CompareConditions(result, expected));
         }
 
@@ -110,7 +110,7 @@ namespace RewriteTest
         [InlineData(@"%{asdf")] // no closing } with characters
         public void ConditionParser_Bad(string testString)
         {
-            ExceptionAssert.Throws<ArgumentException>(() => ConditionParser.ParseConditionTestString(testString));
+            ExceptionAssert.Throws<ArgumentException>(() => ConditionTestStringParser.ParseConditionTestString(testString));
         }
         private bool CompareConditions(List<ConditionTestStringSegment> list1, List<ConditionTestStringSegment> list2)
         {

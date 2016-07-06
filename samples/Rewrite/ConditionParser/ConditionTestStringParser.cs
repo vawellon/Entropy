@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Rewrite.Structure2
+namespace Rewrite.ConditionParser
 {
-    public class ConditionParser
+    public class ConditionTestStringParser
     {
         private const char Percent = '%';
         private const char Money = '$';
@@ -39,14 +39,15 @@ namespace Rewrite.Structure2
                 }
                 else if (context.Current == Money)
                 {
-
                     context.Next();
                     context.Mark();
                     // variable
                     if (context.Current >= '0' && context.Current <= '9')
                     {
+                        context.Next();
                         var ruleVariable = context.Capture();
-                        results.Add(new ConditionTestStringSegment { Type = StringCondtionType.RuleParameter, Variable = ruleVariable });
+                        context.Back();
+                        results.Add(new ConditionTestStringSegment { Type = TestStringType.RuleParameter, Variable = ruleVariable });
                     } else
                     {
                         throw new ArgumentException();
@@ -91,12 +92,10 @@ namespace Rewrite.Structure2
 
                 // capture.
                 // TODO return result into list of operations.
-                context.Back();
                 var rawServerVariable = context.Capture();
-                context.Next();
                 if (IsValidVariable(context, rawServerVariable))
                 {
-                    results.Add(new ConditionTestStringSegment { Type = StringCondtionType.ServerVariable, Variable = rawServerVariable });
+                    results.Add(new ConditionTestStringSegment { Type = TestStringType.ServerParameter, Variable = rawServerVariable });
 
                 }
                 else
@@ -109,10 +108,12 @@ namespace Rewrite.Structure2
                 // means we have a segmented lookup
                 // store information in the testString result to know what to look up.
                 context.Mark();
+                context.Next();
                 var rawConditionParameter = context.Capture();
+                context.Back();
                 if (IsValidVariable(context, rawConditionParameter))
                 {
-                    results.Add(new ConditionTestStringSegment { Type = StringCondtionType.ConditionParameter, Variable = rawConditionParameter });
+                    results.Add(new ConditionTestStringSegment { Type = TestStringType.ConditionParameter, Variable = rawConditionParameter });
                 }
                 else
                 {
@@ -135,13 +136,12 @@ namespace Rewrite.Structure2
             {
                 if (context.Current == Percent || context.Current == Money)
                 {
-                    context.Back();
                     encoded = context.Capture();
+                    context.Back();
                     break;
                 }
                 if (!context.Next())
                 {
-                    context.Back();
                     encoded = context.Capture();
                     break;
                 }
@@ -149,7 +149,7 @@ namespace Rewrite.Structure2
             if (IsValidLiteral(context, encoded))
             {
                 // add results
-                results.Add(new ConditionTestStringSegment { Type = StringCondtionType.Literal, Variable = encoded });
+                results.Add(new ConditionTestStringSegment { Type = TestStringType.Literal, Variable = encoded });
                 return true;
             }
             else
@@ -166,7 +166,5 @@ namespace Rewrite.Structure2
         {
             return true;
         }
-
-
     }
 }

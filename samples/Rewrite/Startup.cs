@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using System.Text.RegularExpressions;
 using System.IO;
-
+using Rewrite.FileParser;
 namespace Rewrite.Structure2
 {
     public class Startup
@@ -20,7 +20,7 @@ namespace Rewrite.Structure2
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-            var file = new FileStream("RewriteFile.txt", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            RewriteConfigurationExtensions.AddRewriteFile("Rewrite.txt");
             builder.AddEnvironmentVariables();
             Configuration = builder.Build();
         }
@@ -31,7 +31,6 @@ namespace Rewrite.Structure2
         {
 
             var rewriteBuilder = new UrlRewriteBuilder();
-            rewriteBuilder.RulesFromConfig(Configuration);
 
             app.UseRewriter(rewriteBuilder.Build());
             app.Run(context => context.Response.WriteAsync(context.Request.Path));

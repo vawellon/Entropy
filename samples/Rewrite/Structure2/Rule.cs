@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Rewrite.ConditionParser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,17 +7,17 @@ using System.Threading.Tasks;
 
 namespace Rewrite.Structure2
 {
-    public enum Transformation
+    public class Rule
     {
-        Rewrite,
-        TerminatingRewrite,
-        Redirect
-    }
-    public abstract class Rule
-    {
-        public Transformation RuleState { get; set; }
         public List<Condition> Conditions { get; set; }
-        public abstract bool ApplyRule(HttpContext context);
         public string Description { get; set; }
+        // TODO trash class name
+        public InvertExpression InitialRule { get; set; }
+        public List<ConditionTestStringSegment> OnMatch { get; set; }
+        public List<string> Flags { get; set; }
+        public bool ApplyRule(HttpContext context)
+        {
+            return true;
+        }
     }
 }

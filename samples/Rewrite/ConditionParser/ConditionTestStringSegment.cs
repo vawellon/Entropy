@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Rewrite.Structure2
+namespace Rewrite.ConditionParser
 {
-    public enum StringCondtionType
+    public enum TestStringType
     {
-        Literal, ServerVariable, ConditionParameter, RuleParameter
+        Literal, ServerParameter, ConditionParameter, RuleParameter
     }
     public class ConditionTestStringSegment
     {
         public string Variable { get; set; }
-        public StringCondtionType Type { get; set; }
+        public TestStringType Type { get; set; }
     }
 }

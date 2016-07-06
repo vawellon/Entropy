@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Rewrite.Structure2
+namespace Rewrite.ConditionParser
 {
     public class ConditionParserContext
     {
@@ -33,6 +33,17 @@ namespace Rewrite.Structure2
         {
             return ++_index < _template.Length;
         }
+        public bool HasNext()
+        {
+            return (_index + 1) < _template.Length;
+        }
+        public char NextChar
+        {
+            get
+            {
+                return (_index + 1 < _template.Length && _index >= 0) ? _template[_index + 1] : (char)0;
+            }
+        }
         public void Mark()
         {
             _mark = _index;
@@ -41,7 +52,7 @@ namespace Rewrite.Structure2
         {
             if (_mark.HasValue)
             {
-                var value = _template.Substring(_mark.Value, _index - _mark.Value + 1);
+                var value = _template.Substring(_mark.Value, _index - _mark.Value);
                 _mark = null;
                 return value;
             }

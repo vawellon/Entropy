@@ -10,8 +10,9 @@ namespace Rewrite.FileParser
     public static class RewriteTokenizer
     {
         private const char Space = ' ';
-        private const char Escape = '\\'; 
-
+        private const char Escape = '\\';
+        private const char Tab = '\t';
+        // TODO handle "s
         public static List<string> TokenizeRule(string rule)
         {
             if (rule == null || rule == String.Empty)
@@ -42,13 +43,13 @@ namespace Rewrite.FileParser
                         throw new ArgumentException();
                     }
                 }
-                else if (context.Current == Space)
+                else if (context.Current == Space || context.Current == Tab)
                 {
                     
                     // time to capture!
                     var token = context.Capture();
                     tokens.Add(token);
-                    while (context.Current == '\t' || context.Current == ' ')
+                    while (context.Current == Space || context.Current == Tab)
                     {
                         if (!context.Next())
                         {
