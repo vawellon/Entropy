@@ -12,10 +12,13 @@ namespace Rewrite.Structure2
     {
         private List<Rule> _rules = new List<Rule>();
 
-
         public List<Rule> Build()
         {
             return new List<Rule>(_rules);
+        }
+        public void AddRules(List<Rule> rules)
+        {
+            _rules.AddRange(rules);
         }
     }
 }

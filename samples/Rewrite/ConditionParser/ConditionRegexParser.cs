@@ -15,14 +15,14 @@ namespace Rewrite.ConditionParser
         private const char EqualSign = '=';
 
         // Given a Condition Regex Expression, obtain a ConditionRegexStatement 
-        public static InvertExpression ParseCondition(string condition)
+        public static GeneralExpression ParseCondition(string condition)
         {
             if (condition == null)
             {
                 condition = String.Empty;
             }
             var context = new ConditionParserContext(condition);
-            var results = new InvertExpression();
+            var results = new GeneralExpression();
             if (!context.Next())
             {
                 return null;
@@ -49,11 +49,13 @@ namespace Rewrite.ConditionParser
                     {
                         throw new FormatException();
                     }
-                    results.Expression = new ConditionExpression { Operation = OperationType.GreaterEqual, Type = ConditionType.StringComp };
+                    results.Operation = OperationType.GreaterEqual;
+                    results.Type = ConditionType.StringComp;
                 } 
                 else
                 {
-                    results.Expression = new ConditionExpression { Operation = OperationType.Greater, Type = ConditionType.StringComp };
+                    results.Operation = OperationType.Greater;
+                    results.Type = ConditionType.StringComp;
                 }
             }
             else if (context.Current == Less)
@@ -68,11 +70,13 @@ namespace Rewrite.ConditionParser
                     {
                         throw new FormatException();
                     }
-                    results.Expression = new ConditionExpression { Operation = OperationType.LessEqual, Type = ConditionType.StringComp };
+                    results.Operation = OperationType.LessEqual;
+                    results.Type = ConditionType.StringComp;
                 }
                 else
                 {
-                    results.Expression = new ConditionExpression { Operation = OperationType.Less, Type = ConditionType.StringComp };
+                    results.Operation = OperationType.Less;
+                    results.Type = ConditionType.StringComp;
                 }
             }
             else if (context.Current == EqualSign)
@@ -81,14 +85,13 @@ namespace Rewrite.ConditionParser
                 {
                     throw new FormatException();
                 }
-                results.Expression = new ConditionExpression { Operation = OperationType.Equal, Type = ConditionType.StringComp };
+                results.Operation = OperationType.Equal;
+                results.Type = ConditionType.StringComp;
             }
             else if (context.Current == Dash)
             {
-                results.Expression = ParseAttributeTest(context);
-                // Hacky way to do this right now, fix soon
-                var tempCond = (ConditionExpression)results.Expression;
-                if (tempCond.Type == ConditionType.FileTest)
+                results = ParseAttributeTest(context);
+                if (results.Type == ConditionType.FileTest)
                 {
                     return results;
                 }
@@ -96,16 +99,16 @@ namespace Rewrite.ConditionParser
             }
             else
             {
-                results.Expression = new ConditionExpression { Type = ConditionType.Regex }; 
+                results.Type = ConditionType.Regex; 
             }
 
             context.Mark();
             while (context.Next()) ;
-            results.Expression.Variable = context.Capture();
+            results.Variable = context.Capture();
             return results;
         }
 
-        public static ConditionExpression ParseAttributeTest(ConditionParserContext context)
+        public static GeneralExpression ParseAttributeTest(ConditionParserContext context)
         {
             var current = String.Empty;
             while (true)
@@ -118,36 +121,36 @@ namespace Rewrite.ConditionParser
                 switch (current)
                 {
                     case "eq":
-                        return new ConditionExpression { Type = ConditionType.IntComp, Operation = OperationType.Equal };
+                        return new GeneralExpression { Type = ConditionType.IntComp, Operation = OperationType.Equal };
                     case "ge":
-                        return new ConditionExpression { Type = ConditionType.IntComp, Operation = OperationType.GreaterEqual };
+                        return new GeneralExpression { Type = ConditionType.IntComp, Operation = OperationType.GreaterEqual };
                     case "gt":
-                        return new ConditionExpression { Type = ConditionType.IntComp, Operation = OperationType.Greater };
+                        return new GeneralExpression { Type = ConditionType.IntComp, Operation = OperationType.Greater };
                     case "le":
-                        return new ConditionExpression { Type = ConditionType.IntComp, Operation = OperationType.LessEqual};
+                        return new GeneralExpression { Type = ConditionType.IntComp, Operation = OperationType.LessEqual};
                     case "lt":
-                        return new ConditionExpression { Type = ConditionType.IntComp, Operation = OperationType.Less };
+                        return new GeneralExpression { Type = ConditionType.IntComp, Operation = OperationType.Less };
                     case "ne":
-                        return new ConditionExpression { Type = ConditionType.IntComp, Operation = OperationType.NotEqual };
+                        return new GeneralExpression { Type = ConditionType.IntComp, Operation = OperationType.NotEqual };
                     case "d":
-                        return new ConditionExpression { Type = ConditionType.FileTest, Operation = OperationType.Directory };
+                        return new GeneralExpression { Type = ConditionType.FileTest, Operation = OperationType.Directory };
                     case "f":
-                        return new ConditionExpression { Type = ConditionType.FileTest, Operation = OperationType.RegularFile };
+                        return new GeneralExpression { Type = ConditionType.FileTest, Operation = OperationType.RegularFile };
                     case "F":
-                        return new ConditionExpression { Type = ConditionType.FileTest, Operation = OperationType.ExistingFile };
+                        return new GeneralExpression { Type = ConditionType.FileTest, Operation = OperationType.ExistingFile };
                     case "h":
                     case "L":
-                        return new ConditionExpression { Type = ConditionType.FileTest, Operation = OperationType.SymbolicLink };
+                        return new GeneralExpression { Type = ConditionType.FileTest, Operation = OperationType.SymbolicLink };
                     case "s":
-                        return new ConditionExpression { Type = ConditionType.FileTest, Operation = OperationType.Size };
+                        return new GeneralExpression { Type = ConditionType.FileTest, Operation = OperationType.Size };
                     case "U":
-                        return new ConditionExpression { Type = ConditionType.FileTest, Operation = OperationType.ExistingUrl };
+                        return new GeneralExpression { Type = ConditionType.FileTest, Operation = OperationType.ExistingUrl };
                     case "x":
-                        return new ConditionExpression { Type = ConditionType.FileTest, Operation = OperationType.Executable };
+                        return new GeneralExpression { Type = ConditionType.FileTest, Operation = OperationType.Executable };
                     case "l":
                         if (!context.HasNext())
                         {
-                            return new ConditionExpression { Type = ConditionType.FileTest, Operation = OperationType.SymbolicLink };
+                            return new GeneralExpression { Type = ConditionType.FileTest, Operation = OperationType.SymbolicLink };
                         }
                         break;
                     default:

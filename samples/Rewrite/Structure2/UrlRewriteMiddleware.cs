@@ -31,6 +31,7 @@ namespace Rewrite.Structure2
 
         public async Task Invoke(HttpContext context)
         {
+
             if (context == null)
             {
                 throw new ArgumentNullException(nameof(context));
@@ -41,7 +42,7 @@ namespace Rewrite.Structure2
                 // TODO logic for flags.
                 // TODO dont initialize the regex here for every request, have it initialized in 
                 //      either the parsing on lazily initialize and save here
-                Regex compare = new Regex(rule.InitialRule.Expression.Variable);
+                Regex compare = new Regex(rule.InitialRule.Variable);
                 Match results = compare.Match(context.Request.Path.ToString());
                 // If the match came back negative (the rule xor'd with whether or not it is inverted)
                 // go to the next rule.
@@ -50,20 +51,50 @@ namespace Rewrite.Structure2
                     continue;
                 }
                 // 2. Go through all conditions and compare them to the created string
-                Match previous = null;
-                foreach (Condition condition in rule.Conditions)
+                Match previous = Match.Empty;
+                var i = 0;
+                for (i = 0; i < rule.Conditions.Count; i++)
                 {
-                    string concatTestString = CollectTestStringFromContext(condition, context, previous, results);
-                    // TODO change invert expression name and make it collapsed into condition expression and normal expression.
+                    Condition condition = rule.Conditions[i];
+                    string concatTestString = CollectTestStringFromContext(condition.TestStringSegments, context, previous, results);
+                    bool pass = false;
+                    switch (condition.ConditionRegex.Type)
+                    {
+                        case ConditionType.FileTest:
+                            pass = CheckFileCondition(concatTestString, condition, context);
+                            break;
+                        case ConditionType.IntComp:
+                            pass = CheckIntCondition(concatTestString, condition, context);
+                            break;
+                        case ConditionType.StringComp:
+                            pass = CheckStringCondition(concatTestString, condition, context);
+                            break;
+                        case ConditionType.Regex:
+                            previous = Regex.Match(concatTestString, condition.ConditionRegex.Variable);
+                            pass = previous.Success;
+                            break;
+                    }
+                    if (!(pass ^ condition.ConditionRegex.Invert))
+                    {
+                        break;
+                    }
                 }
+                if (i < rule.Conditions.Count)
+                {
+                    continue;
+                }
+                // at this point, our rule passed, we can now apply the on match function
+                string result = CollectTestStringFromContext(rule.OnMatch, context, previous, results);
+                // for now just replace the path, TODO add flag options here
+                context.Request.Path = new PathString(result);
             }
             await _next(context);
         }
 
-        private string CollectTestStringFromContext(Condition condition, HttpContext context, Match previous, Match ruleResults)
+        private string CollectTestStringFromContext(List<ConditionTestStringSegment> testStrings, HttpContext context, Match previous, Match ruleResults)
         {
             String res = String.Empty;
-            foreach (ConditionTestStringSegment segment in condition.TestStringSegments)
+            foreach (ConditionTestStringSegment segment in testStrings)
             {
 
                 // TODO check Groups body and verify it is 1 indexed, else subtract 1?
@@ -85,6 +116,21 @@ namespace Rewrite.Structure2
                 }
             }
             return res;
+        }
+
+        private bool CheckFileCondition(string testString, Condition condition, HttpContext context)
+        {
+            return true;
+        }
+
+        private bool CheckIntCondition(string testString, Condition condition, HttpContext context)
+        {
+            return true;
+        }
+
+        private bool CheckStringCondition(string testString, Condition condition, HttpContext context)
+        {
+            return true;
         }
     }
 }

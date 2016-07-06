@@ -5,6 +5,13 @@ using System.Threading.Tasks;
 
 namespace Rewrite.ConditionParser
 {
+    public class GeneralExpression
+    {
+        public string Variable { get; set; }
+        public bool Invert { get; set; }
+        public ConditionType Type { get; set; }
+        public OperationType Operation { get; set; }
+    }
     public enum ConditionType
     {
         Regex, FileTest, StringComp, IntComp
@@ -13,10 +20,5 @@ namespace Rewrite.ConditionParser
     {
         None, Equal, Greater, GreaterEqual, Less, LessEqual, NotEqual,
         Directory, RegularFile, ExistingFile, SymbolicLink, Size, ExistingUrl, Executable
-    }
-    public class ConditionExpression : Expression
-    {
-        public ConditionType Type { get; set; }
-        public OperationType Operation { get; set; }
     }
 }

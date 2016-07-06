@@ -30,7 +30,7 @@ namespace Rewrite.FileParser
                     case "RewriteCond":
                         {
                             List<ConditionTestStringSegment> matchesForCondition = ConditionTestStringParser.ParseConditionTestString(tokens[1]);
-                            InvertExpression ie = ConditionRegexParser.ParseCondition(tokens[2]);
+                            GeneralExpression ie = ConditionRegexParser.ParseCondition(tokens[2]);
                             List<string> flags = null;
                             if (tokens.Count == 4)
                             {
@@ -43,7 +43,7 @@ namespace Rewrite.FileParser
                         {
                             // parse regex
                             // then do similar logic to the condition test string replacement
-                            InvertExpression ie = RuleRegexParser.ParseRuleRegex(tokens[1]);
+                            GeneralExpression ie = RuleRegexParser.ParseRuleRegex(tokens[1]);
                             List<ConditionTestStringSegment> matchesForRule = ConditionTestStringParser.ParseConditionTestString(tokens[2]);
                             if (tokens.Count == 4)
                             {

@@ -20,7 +20,6 @@ namespace Rewrite.Structure2
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-            RewriteConfigurationExtensions.AddRewriteFile("Rewrite.txt");
             builder.AddEnvironmentVariables();
             Configuration = builder.Build();
         }
@@ -31,7 +30,7 @@ namespace Rewrite.Structure2
         {
 
             var rewriteBuilder = new UrlRewriteBuilder();
-
+            rewriteBuilder.AddRules(RewriteConfigurationExtensions.AddRewriteFile("Rewrite.txt"));
             app.UseRewriter(rewriteBuilder.Build());
             app.Run(context => context.Response.WriteAsync(context.Request.Path));
         }

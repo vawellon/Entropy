@@ -8,7 +8,7 @@ namespace Rewrite.RuleParser
 {
     public static class RuleRegexParser
     {
-        public static InvertExpression ParseRuleRegex(string regex)
+        public static GeneralExpression ParseRuleRegex(string regex)
         {
             if (regex == null || regex == String.Empty)
             {
@@ -16,11 +16,11 @@ namespace Rewrite.RuleParser
             }
             if (regex.StartsWith("!"))
             {
-                return new InvertExpression { Invert = true, Expression = new Expression { Variable = regex.Substring(1) } };
+                return new GeneralExpression { Invert = true, Variable = regex.Substring(1) };
             }
             else
             {
-                return new InvertExpression { Invert = false, Expression = new Expression { Variable = regex } };
+                return new GeneralExpression { Invert = false, Variable = regex};
             }
         }
     }

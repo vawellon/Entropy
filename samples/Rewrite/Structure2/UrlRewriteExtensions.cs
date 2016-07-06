@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 namespace Rewrite.Structure2
 {
 
-    using Predicate = Func<HttpContext, bool>;
     public static class UrlRewriteExtensions
     {
         public static IApplicationBuilder UseRewriter(this IApplicationBuilder app, List<Rule> rules)
@@ -23,7 +22,6 @@ namespace Rewrite.Structure2
                 throw new ArgumentNullException(nameof(rules));
             }
 
-            // create the predicate
             var options = new UrlRewriteOptions
             {
                 Rules = rules,

@@ -18,7 +18,7 @@ namespace RewriteTest
         {
             var results = ConditionRegexParser.ParseCondition(condition);
 
-            var expected = new InvertExpression { Expression = new ConditionExpression { Operation = operation, Type = conditionType, Variable = variable }, Invert = false };
+            var expected = new GeneralExpression { Operation = operation, Type = conditionType, Variable = variable, Invert = false };
             Assert.True(CompareConditions(results, expected));
         }
 
@@ -28,7 +28,7 @@ namespace RewriteTest
             var condition = @"(.*)";
             var results = ConditionRegexParser.ParseCondition(condition);
 
-            var expected = new InvertExpression { Expression = new ConditionExpression { Type = ConditionType.Regex, Variable = "(.*)" }, Invert = false };
+            var expected = new GeneralExpression { Type = ConditionType.Regex, Variable = "(.*)",  Invert = false };
             Assert.True(CompareConditions(results, expected));
         }
 
@@ -46,7 +46,7 @@ namespace RewriteTest
         {
             var results = ConditionRegexParser.ParseCondition(condition);
 
-            var expected = new InvertExpression { Expression = new ConditionExpression { Type = cond, Operation = operation }, Invert = false };
+            var expected = new GeneralExpression { Type = cond, Operation = operation , Invert = false };
             Assert.True(CompareConditions(results, expected));
         }
 
@@ -64,7 +64,7 @@ namespace RewriteTest
         {
             var results = ConditionRegexParser.ParseCondition(condition);
 
-            var expected = new InvertExpression { Expression = new ConditionExpression { Type = cond, Operation = operation }, Invert = true };
+            var expected = new GeneralExpression { Type = cond, Operation = operation, Invert = true };
             Assert.True(CompareConditions(results, expected));
         }
 
@@ -75,33 +75,20 @@ namespace RewriteTest
         [InlineData("-le1", OperationType.LessEqual, "1", ConditionType.IntComp)]
         [InlineData("-eq1", OperationType.Equal, "1", ConditionType.IntComp)]
         [InlineData("-ne1", OperationType.NotEqual, "1", ConditionType.IntComp)]
-        public void ConditionParser_CheckIntComp(string condition, OperationType operation, string variable, ConditionType conditionType)
+        public void ConditionParser_CheckIntComp(string condition, OperationType operation, string variable, ConditionType cond)
         {
             var results = ConditionRegexParser.ParseCondition(condition);
 
-            var expected = new InvertExpression { Expression = new ConditionExpression { Operation = operation, Type = conditionType, Variable = variable }, Invert = false };
+            var expected = new GeneralExpression { Type = cond, Operation = operation, Invert = false, Variable = variable };
             Assert.True(CompareConditions(results, expected));
         }
 
-        private bool CompareConditions(InvertExpression i1, InvertExpression i2)
+        private bool CompareConditions(GeneralExpression i1, GeneralExpression i2)
         {
-            if (i1.Invert != i2.Invert)
-            {
-                return false;
-            }
-            if (!i1.Expression.GetType().Equals(i2.Expression.GetType()))
-            {
-                return false;
-            }
-            if (!(i1.Expression is ConditionExpression))
-            {
-                return false;
-            }
-            var c1 = (ConditionExpression) i1.Expression;
-            var c2 = (ConditionExpression) i1.Expression;
-            if (c1.Operation != c2.Operation ||
-                c1.Type != c2.Type ||
-                c1.Variable != c2.Variable)
+            if (i1.Operation != i2.Operation ||
+                i1.Type != i2.Type ||
+                i1.Variable != i2.Variable ||
+                i1.Invert != i2.Invert)
             {
                 return false;
             }
