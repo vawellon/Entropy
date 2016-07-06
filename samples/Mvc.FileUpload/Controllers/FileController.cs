@@ -21,10 +21,6 @@ namespace Mvc.FileUpload.Controllers
         private readonly IHostingEnvironment _hostingEnvironment;
         private readonly ILogger<FileController> _logger;
 
-        // Get the default form options so that we can use them to set the default limits for
-        // request body data
-        private static readonly FormOptions _defaultFormOptions = new FormOptions();
-
         public FileController(IHostingEnvironment hostingEnvironment, ILogger<FileController> logger)
         {
             _hostingEnvironment = hostingEnvironment;
@@ -47,7 +43,9 @@ namespace Mvc.FileUpload.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Upload()
         {
-            if (!MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
+            var contentType = MediaTypeHeaderValue.Parse(Request.ContentType);
+
+            if (!contentType.IsMultipartFormContentType())
             {
                 return BadRequest($"Expected a multipart request, but got '{Request.ContentType}'.");
             }
@@ -56,8 +54,7 @@ namespace Mvc.FileUpload.Controllers
             var formAccumulator = new KeyValueAccumulator();
             string targetFilePath = null;
 
-            var boundary = MultipartRequestHelper.GetBoundary(
-                MediaTypeHeaderValue.Parse(Request.ContentType), _defaultFormOptions.MultipartBoundaryLengthLimit);
+            var boundary = contentType.GetBoundary(FormOptions.DefaultMultipartBoundaryLengthLimit);
             var reader = new MultipartReader(boundary, HttpContext.Request.Body);
 
             var section = await reader.ReadNextSectionAsync();
@@ -66,7 +63,7 @@ namespace Mvc.FileUpload.Controllers
                 ContentDispositionHeaderValue contentDisposition;
                 ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out contentDisposition);
 
-                if (MultipartRequestHelper.HasFileContentDisposition(contentDisposition))
+                if (contentDisposition.IsFileContentDisposition())
                 {
                     var name = HeaderUtilities.RemoveQuotes(contentDisposition.Name) ?? string.Empty;
                     var fileName = HeaderUtilities.RemoveQuotes(contentDisposition.FileName) ?? string.Empty;
@@ -81,7 +78,7 @@ namespace Mvc.FileUpload.Controllers
                         _logger.LogInformation($"Copied the uploaded file '{fileName}' to '{targetFilePath}'.");
                     }
                 }
-                else if (MultipartRequestHelper.HasFormDataContentDisposition(contentDisposition))
+                else if (contentDisposition.IsFormDataContentDisposition())
                 {
                     // Content-Disposition: form-data; name="key"
                     //
@@ -104,10 +101,10 @@ namespace Mvc.FileUpload.Controllers
                         var value = await streamReader.ReadToEndAsync();
                         formAccumulator.Append(key, value);
 
-                        if (formAccumulator.ValueCount > _defaultFormOptions.ValueCountLimit)
+                        if (formAccumulator.ValueCount > FormReader.DefaultValueCountLimit)
                         {
                             throw new InvalidDataException(
-                                $"Form key count limit {_defaultFormOptions.ValueCountLimit} exceeded.");
+                                $"Form key count limit {FormReader.DefaultValueCountLimit} exceeded.");
                         }
                     }
                 }
