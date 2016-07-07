@@ -30,9 +30,7 @@
     "Microsoft.NETCore.App": {
       "type": "platform",
       "version": "1.0.0-*"
-    },
-    "Microsoft.Net.Http.Headers": "1.1.0-*",
-    "Microsoft.AspNetCore.Http.Features": "1.1.0-*"
+    }
   },
   "frameworks": {
     "netcoreapp1.0": {}
