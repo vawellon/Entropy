@@ -60,15 +60,11 @@ namespace Mvc.FileUpload.Controllers
             var section = await reader.ReadNextSectionAsync();
             while (section != null)
             {
-                ContentDispositionHeaderValue contentDisposition;
-                ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out contentDisposition);
-
-                if (contentDisposition.IsFileContentDisposition())
+                var fileContentSection = FileContentMultipartSection.CreateFromMultipartSection(section);
+                if (fileContentSection != null)
                 {
-                    var fileName = HeaderUtilities.RemoveQuotes(contentDisposition.FileName) ?? string.Empty;
+                    var fileName = fileContentSection.FileName;
 
-                    // Here the uploaded file is being copied to local disk but you can also for example, copy the
-                    // stream directly to let's say Azure blob storage
                     targetFilePath = Path.Combine(_hostingEnvironment.ContentRootPath, Guid.NewGuid().ToString());
                     using (var targetStream = System.IO.File.Create(targetFilePath))
                     {
@@ -77,28 +73,15 @@ namespace Mvc.FileUpload.Controllers
                         _logger.LogInformation($"Copied the uploaded file '{fileName}' to '{targetFilePath}'.");
                     }
                 }
-                else if (contentDisposition.IsFormDataContentDisposition())
+                else
                 {
-                    // Content-Disposition: form-data; name="key"
-                    //
-                    // value
-
-                    // Do not limit the key name length here because the mulipart headers length
-                    // limit is already in effect.
-                    var key = HeaderUtilities.RemoveQuotes(contentDisposition.Name);
-                    MediaTypeHeaderValue sectionMediaType;
-                    MediaTypeHeaderValue.TryParse(section.ContentType, out sectionMediaType);
-                    var encoding = FilterEncoding(sectionMediaType?.Encoding);
-                    using (var streamReader = new StreamReader(
-                        section.Body,
-                        encoding,
-                        detectEncodingFromByteOrderMarks: true,
-                        bufferSize: 1024,
-                        leaveOpen: true))
+                    var formDataSection = FormDataMultipartSection.CreateFromMultipartSection(section);
+                    if (section != null)
                     {
-                        // The value length limit is enforced by MultipartBodyLengthLimit
-                        var value = await streamReader.ReadToEndAsync();
-                        formAccumulator.Append(key, value);
+                        var name = formDataSection.Name;
+                        var value = formDataSection.Value;
+
+                        formAccumulator.Append(name, value);
 
                         if (formAccumulator.ValueCount > FormReader.DefaultValueCountLimit)
                         {
