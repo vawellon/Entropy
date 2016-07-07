@@ -1,18 +1,20 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Rewrite.ConditionParser
 {
     public class ConditionTestStringParser
     {
         private const char Percent = '%';
-        private const char Money = '$';
-        private const char Separator = ' ';
+        private const char Dollar = '$';
+        private const char Space = ' ';
         private const char Colon = ':';
         private const char OpenBrace = '{';
         private const char CloseBrace = '}';
+        // TODO comments about what the test string is.
+        // TODO comments about what went wrong in exceptions
         public static List<ConditionTestStringSegment> ParseConditionTestString(string testString)
         {
             // TODO Create different parsers, regex, condition, etc.
@@ -35,9 +37,8 @@ namespace Rewrite.ConditionParser
                     {
                         throw new ArgumentException();
                     }
-                    // here store the information necessary to do an easy lookup
                 }
-                else if (context.Current == Money)
+                else if (context.Current == Dollar)
                 {
                     context.Next();
                     context.Mark();
@@ -48,7 +49,8 @@ namespace Rewrite.ConditionParser
                         var ruleVariable = context.Capture();
                         context.Back();
                         results.Add(new ConditionTestStringSegment { Type = TestStringType.RuleParameter, Variable = ruleVariable });
-                    } else
+                    }
+                    else
                     {
                         throw new ArgumentException();
                     }
@@ -64,8 +66,9 @@ namespace Rewrite.ConditionParser
             return results;
         }
 
-        // pre: will only be called if this is an unescaped '%' 
+        // pre: will only be called if context.Current is an unescaped '%' 
         // post: adds an application to the teststring results that will be concatinated on success
+        // TODO make this return the condition test string segment and a bool
         private static bool ParseConditionParameter(ConditionParserContext context, List<ConditionTestStringSegment> results)
         {
             if (context.Current == OpenBrace)
@@ -96,7 +99,6 @@ namespace Rewrite.ConditionParser
                 if (IsValidVariable(context, rawServerVariable))
                 {
                     results.Add(new ConditionTestStringSegment { Type = TestStringType.ServerParameter, Variable = rawServerVariable });
-
                 }
                 else
                 {
@@ -134,7 +136,7 @@ namespace Rewrite.ConditionParser
             string encoded;
             while (true)
             {
-                if (context.Current == Percent || context.Current == Money)
+                if (context.Current == Percent || context.Current == Dollar)
                 {
                     encoded = context.Capture();
                     context.Back();
@@ -164,6 +166,7 @@ namespace Rewrite.ConditionParser
         }
         private static bool IsValidVariable(ConditionParserContext context, string encoded)
         {
+            // TODO
             return true;
         }
     }

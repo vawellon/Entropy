@@ -1,9 +1,8 @@
-﻿using Microsoft.Extensions.Primitives;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+using Rewrite.ConditionParser;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Rewrite.FileParser
 {
@@ -19,7 +18,8 @@ namespace Rewrite.FileParser
             {
                 return null;
             }
-            var context = new TokenContext(rule);
+            // TODO rename conditionParserContext to something more general
+            var context = new ConditionParserContext(rule);
             if (!context.Next())
             {
                 return null;
@@ -48,68 +48,24 @@ namespace Rewrite.FileParser
                     
                     // time to capture!
                     var token = context.Capture();
-                    tokens.Add(token);
-                    while (context.Current == Space || context.Current == Tab)
+                    if (token.Length > 0)
                     {
-                        if (!context.Next())
+                        tokens.Add(token);
+                        while (context.Current == Space || context.Current == Tab)
                         {
-                            // At end of string, we can return at this point.
-                            return tokens;
+                            if (!context.Next())
+                            {
+                                // At end of string, we can return at this point.
+                                return tokens;
+                            }
                         }
+                        context.Mark();
                     }
-                    context.Mark();
                 }
             }
             var done = context.Capture();
             tokens.Add(done);
             return tokens;
-        }
-
-        private class TokenContext
-        {
-            private readonly string _template;
-            private int _index;
-            private int? _mark;
-
-            public TokenContext(string line)
-            {
-                _template = line;
-                _index = -1;
-            }
-            public char Current
-            {
-                get { return (_index < _template.Length && _index >= 0) ? _template[_index] : (char)0; }
-            }
-            public string Error
-            {
-                get;
-                set;
-            }
-            public bool Back()
-            {
-                return --_index >= 0;
-            }
-            public bool Next()
-            {
-                return ++_index < _template.Length;
-            }
-            public void Mark()
-            {
-                _mark = _index;
-            }
-            public string Capture()
-            {
-                if (_mark.HasValue)
-                {
-                    var value = _template.Substring(_mark.Value, _index - _mark.Value);
-                    _mark = null;
-                    return value;
-                }
-                else
-                {
-                    return null;
-                }
-            }
         }
     }
 }

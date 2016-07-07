@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Xunit;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using Rewrite.ConditionParser;
+using Xunit;
 namespace RewriteTest
 {
     public class ConditionRegexTest
@@ -16,7 +14,7 @@ namespace RewriteTest
         [InlineData("=hey", OperationType.Equal, "hey", ConditionType.StringComp)]
         public void ConditionParser_CheckStringComp(string condition, OperationType operation, string variable, ConditionType conditionType)
         {
-            var results = ConditionRegexParser.ParseCondition(condition);
+            var results = ConditionActionParser.ParseActionCondition(condition);
 
             var expected = new GeneralExpression { Operation = operation, Type = conditionType, Variable = variable, Invert = false };
             Assert.True(CompareConditions(results, expected));
@@ -26,43 +24,43 @@ namespace RewriteTest
         public void ConditionParser_CheckRegexEqual()
         {
             var condition = @"(.*)";
-            var results = ConditionRegexParser.ParseCondition(condition);
+            var results = ConditionActionParser.ParseActionCondition(condition);
 
             var expected = new GeneralExpression { Type = ConditionType.Regex, Variable = "(.*)",  Invert = false };
             Assert.True(CompareConditions(results, expected));
         }
 
         [Theory]
-        [InlineData("-d", OperationType.Directory, ConditionType.FileTest)]
-        [InlineData("-f", OperationType.RegularFile, ConditionType.FileTest)]
-        [InlineData("-F", OperationType.ExistingFile, ConditionType.FileTest)]
-        [InlineData("-h", OperationType.SymbolicLink, ConditionType.FileTest)]
-        [InlineData("-L", OperationType.SymbolicLink, ConditionType.FileTest)]
-        [InlineData("-l", OperationType.SymbolicLink, ConditionType.FileTest)]
-        [InlineData("-s", OperationType.Size, ConditionType.FileTest)]
-        [InlineData("-U", OperationType.ExistingUrl, ConditionType.FileTest)]
-        [InlineData("-x", OperationType.Executable, ConditionType.FileTest)]
+        [InlineData("-d", OperationType.Directory, ConditionType.PropertyTest)]
+        [InlineData("-f", OperationType.RegularFile, ConditionType.PropertyTest)]
+        [InlineData("-F", OperationType.ExistingFile, ConditionType.PropertyTest)]
+        [InlineData("-h", OperationType.SymbolicLink, ConditionType.PropertyTest)]
+        [InlineData("-L", OperationType.SymbolicLink, ConditionType.PropertyTest)]
+        [InlineData("-l", OperationType.SymbolicLink, ConditionType.PropertyTest)]
+        [InlineData("-s", OperationType.Size, ConditionType.PropertyTest)]
+        [InlineData("-U", OperationType.ExistingUrl, ConditionType.PropertyTest)]
+        [InlineData("-x", OperationType.Executable, ConditionType.PropertyTest)]
         public void ConditionParser_CheckFileOperations(string condition, OperationType operation, ConditionType cond)
         {
-            var results = ConditionRegexParser.ParseCondition(condition);
+            var results = ConditionActionParser.ParseActionCondition(condition);
 
             var expected = new GeneralExpression { Type = cond, Operation = operation , Invert = false };
             Assert.True(CompareConditions(results, expected));
         }
 
         [Theory]
-        [InlineData("!-d", OperationType.Directory, ConditionType.FileTest)]
-        [InlineData("!-f", OperationType.RegularFile, ConditionType.FileTest)]
-        [InlineData("!-F", OperationType.ExistingFile, ConditionType.FileTest)]
-        [InlineData("!-h", OperationType.SymbolicLink, ConditionType.FileTest)]
-        [InlineData("!-L", OperationType.SymbolicLink, ConditionType.FileTest)]
-        [InlineData("!-l", OperationType.SymbolicLink, ConditionType.FileTest)]
-        [InlineData("!-s", OperationType.Size, ConditionType.FileTest)]
-        [InlineData("!-U", OperationType.ExistingUrl, ConditionType.FileTest)]
-        [InlineData("!-x", OperationType.Executable, ConditionType.FileTest)]
+        [InlineData("!-d", OperationType.Directory, ConditionType.PropertyTest)]
+        [InlineData("!-f", OperationType.RegularFile, ConditionType.PropertyTest)]
+        [InlineData("!-F", OperationType.ExistingFile, ConditionType.PropertyTest)]
+        [InlineData("!-h", OperationType.SymbolicLink, ConditionType.PropertyTest)]
+        [InlineData("!-L", OperationType.SymbolicLink, ConditionType.PropertyTest)]
+        [InlineData("!-l", OperationType.SymbolicLink, ConditionType.PropertyTest)]
+        [InlineData("!-s", OperationType.Size, ConditionType.PropertyTest)]
+        [InlineData("!-U", OperationType.ExistingUrl, ConditionType.PropertyTest)]
+        [InlineData("!-x", OperationType.Executable, ConditionType.PropertyTest)]
         public void ConditionParser_CheckFileOperationsInverted(string condition, OperationType operation, ConditionType cond)
         {
-            var results = ConditionRegexParser.ParseCondition(condition);
+            var results = ConditionActionParser.ParseActionCondition(condition);
 
             var expected = new GeneralExpression { Type = cond, Operation = operation, Invert = true };
             Assert.True(CompareConditions(results, expected));
@@ -77,12 +75,13 @@ namespace RewriteTest
         [InlineData("-ne1", OperationType.NotEqual, "1", ConditionType.IntComp)]
         public void ConditionParser_CheckIntComp(string condition, OperationType operation, string variable, ConditionType cond)
         {
-            var results = ConditionRegexParser.ParseCondition(condition);
+            var results = ConditionActionParser.ParseActionCondition(condition);
 
             var expected = new GeneralExpression { Type = cond, Operation = operation, Invert = false, Variable = variable };
             Assert.True(CompareConditions(results, expected));
         }
 
+        // TODO negative tests
         private bool CompareConditions(GeneralExpression i1, GeneralExpression i2)
         {
             if (i1.Operation != i2.Operation ||

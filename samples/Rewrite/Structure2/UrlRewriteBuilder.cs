@@ -1,10 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Rewrite.Structure2
 {
@@ -19,6 +15,10 @@ namespace Rewrite.Structure2
         public void AddRules(List<Rule> rules)
         {
             _rules.AddRange(rules);
+        }
+        public void AddRule(Rule rule)
+        {
+            _rules.Add(rule);
         }
     }
 }

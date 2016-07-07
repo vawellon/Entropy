@@ -1,23 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Rewrite.Structure2;
+﻿
 using Rewrite.ConditionParser;
 using Rewrite.RuleParser;
+using Rewrite.Structure2;
+using System;
+using System.Collections.Generic;
+using System.IO;
 namespace Rewrite.FileParser
 {
     public static class RewriteConfigurationFileParser
-    {
-        private static StreamReader _reader;
+    { 
         public static List<Rule> Parse(Stream input)
         {
-            _reader = new StreamReader(input);
+            var reader = new StreamReader(input);
             var line = (string) null;
             List<Rule> rules = new List<Rule>();
             var currentRule = new Rule { Conditions = new List<Condition>() };
-            while ((line = _reader.ReadLine()) != null) {
+            while ((line = reader.ReadLine()) != null) {
                 // TODO handle comments
                 List<string> tokens = RewriteTokenizer.TokenizeRule(line);
                 if (tokens.Count < 3)
@@ -25,18 +23,19 @@ namespace Rewrite.FileParser
                     // This means the line didn't have an appropriate format, throw format exception
                     throw new FormatException();
                 }
+                // TODO make a new class called rule parser that does and either return an exception or return the rule.
                 switch (tokens[0])
                 {
                     case "RewriteCond":
                         {
                             List<ConditionTestStringSegment> matchesForCondition = ConditionTestStringParser.ParseConditionTestString(tokens[1]);
-                            GeneralExpression ie = ConditionRegexParser.ParseCondition(tokens[2]);
+                            GeneralExpression ie = ConditionActionParser.ParseActionCondition(tokens[2]);
                             List<string> flags = null;
                             if (tokens.Count == 4)
                             {
                                 flags = ConditionFlagParser.TokenizeAndParseFlags(tokens[3]);
                             }
-                            currentRule.Conditions.Add(new Condition { TestStringSegments = matchesForCondition, ConditionRegex = ie, Flags = flags });
+                            currentRule.Conditions.Add(new Condition(matchesForCondition, ie, flags ));
                             break;
                         }
                     case "RewriteRule":
@@ -50,7 +49,7 @@ namespace Rewrite.FileParser
                                 currentRule.Flags = ConditionFlagParser.TokenizeAndParseFlags(tokens[3]);
                             }
                             currentRule.InitialRule = ie;
-                            currentRule.OnMatch = matchesForRule;
+                            currentRule.Transforms = matchesForRule;
                             rules.Add(currentRule);
                             currentRule = new Rule { Conditions = new List<Condition>() };
                             break;

@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 namespace Rewrite.ConditionParser
 {
+    // TODO rename 
     public class ConditionParserContext
     {
         private readonly string _template;
@@ -37,19 +36,13 @@ namespace Rewrite.ConditionParser
         {
             return (_index + 1) < _template.Length;
         }
-        public char NextChar
-        {
-            get
-            {
-                return (_index + 1 < _template.Length && _index >= 0) ? _template[_index + 1] : (char)0;
-            }
-        }
         public void Mark()
         {
             _mark = _index;
         }
         public string Capture()
         {
+            // TODO make caller responsible for buffering token
             if (_mark.HasValue)
             {
                 var value = _template.Substring(_mark.Value, _index - _mark.Value);
