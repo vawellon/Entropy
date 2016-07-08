@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -43,9 +44,8 @@ namespace Mvc.FileUpload.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Upload()
         {
-            var requestMediaType = MediaTypeHeaderValue.Parse(Request.ContentType);
-
-            if (!requestMediaType.IsMultipartFormContentType())
+            var multipartBoundary = Request.GetMultipartBoundry();
+            if (string.IsNullOrEmpty(multipartBoundary))
             {
                 return BadRequest($"Expected a multipart request, but got '{Request.ContentType}'.");
             }
@@ -54,40 +54,38 @@ namespace Mvc.FileUpload.Controllers
             var formAccumulator = new KeyValueAccumulator();
             string targetFilePath = null;
 
-            var boundary = requestMediaType.GetBoundary(FormOptions.DefaultMultipartBoundaryLengthLimit);
-            var reader = new MultipartReader(boundary, HttpContext.Request.Body);
+            var reader = new MultipartReader(multipartBoundary, HttpContext.Request.Body);
 
             var section = await reader.ReadNextSectionAsync();
             while (section != null)
             {
-                var fileContentSection = FileContentMultipartSection.CreateFromMultipartSection(section);
-                if (fileContentSection != null)
+                if (section.IsFile())
                 {
-                    var fileName = fileContentSection.FileName;
+                    var fileSection = section.AsFileSection();
+
+                    var fileName = fileSection.FileName;
 
                     targetFilePath = Path.Combine(_hostingEnvironment.ContentRootPath, Guid.NewGuid().ToString());
                     using (var targetStream = System.IO.File.Create(targetFilePath))
                     {
-                        await section.Body.CopyToAsync(targetStream);
+                        await fileSection.FileStream.CopyToAsync(targetStream);
 
                         _logger.LogInformation($"Copied the uploaded file '{fileName}' to '{targetFilePath}'.");
                     }
                 }
-                else
+                else if (section.IsFormData())
                 {
-                    var formDataSection = FormDataMultipartSection.CreateFromMultipartSection(section);
-                    if (section != null)
+                    var formSection = section.AsFormDataSection();
+
+                    var name = formSection.Name;
+                    var value = await formSection.GetValueAsync();
+
+                    formAccumulator.Append(name, value);
+
+                    if (formAccumulator.ValueCount > FormReader.DefaultValueCountLimit)
                     {
-                        var name = formDataSection.Name;
-                        var value = formDataSection.Value;
-
-                        formAccumulator.Append(name, value);
-
-                        if (formAccumulator.ValueCount > FormReader.DefaultValueCountLimit)
-                        {
-                            throw new InvalidDataException(
-                                $"Form key count limit {FormReader.DefaultValueCountLimit} exceeded.");
-                        }
+                        throw new InvalidDataException(
+                            $"Form key count limit {FormReader.DefaultValueCountLimit} exceeded.");
                     }
                 }
 
