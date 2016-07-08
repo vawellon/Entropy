@@ -3,14 +3,13 @@
 
 namespace Rewrite.ConditionParser
 {
-    // TODO rename 
-    public class ConditionParserContext
+    public class ModRewriteParserContext
     {
         private readonly string _template;
         private int _index;
         private int? _mark;
 
-        public ConditionParserContext(string condition)
+        public ModRewriteParserContext(string condition)
         {
             _template = condition;
             _index = -1;
@@ -18,11 +17,6 @@ namespace Rewrite.ConditionParser
         public char Current
         {
             get { return (_index < _template.Length && _index >= 0) ? _template[_index] : (char)0; }
-        }
-        public string Error
-        {
-            get;
-            set;
         }
         public bool Back()
         {
@@ -40,6 +34,10 @@ namespace Rewrite.ConditionParser
         {
             _mark = _index;
         }
+        public int GetIndex()
+        {
+            return _index;
+        }
         public string Capture()
         {
             // TODO make caller responsible for buffering token
@@ -53,6 +51,10 @@ namespace Rewrite.ConditionParser
             {
                 return null;
             }
+        }
+        public string Error()
+        {
+            return string.Format("Syntax Error at index: ", _index, " with character: ", Current); 
         }
     }
 }

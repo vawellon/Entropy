@@ -4,7 +4,7 @@ using Rewrite.ConditionParser;
 using Xunit;
 namespace RewriteTest
 {
-    public class ConditionRegexTest
+    public class ConditionActionTest
     {
         [Theory]
         [InlineData(">hey", OperationType.Greater, "hey", ConditionType.StringComp)]
@@ -16,7 +16,7 @@ namespace RewriteTest
         {
             var results = ConditionActionParser.ParseActionCondition(condition);
 
-            var expected = new GeneralExpression { Operation = operation, Type = conditionType, Variable = variable, Invert = false };
+            var expected = new GeneralExpression { Operation = operation, Type = conditionType, Operand = variable, Invert = false };
             Assert.True(CompareConditions(results, expected));
         }
 
@@ -26,7 +26,7 @@ namespace RewriteTest
             var condition = @"(.*)";
             var results = ConditionActionParser.ParseActionCondition(condition);
 
-            var expected = new GeneralExpression { Type = ConditionType.Regex, Variable = "(.*)",  Invert = false };
+            var expected = new GeneralExpression { Type = ConditionType.Regex, Operand = "(.*)",  Invert = false };
             Assert.True(CompareConditions(results, expected));
         }
 
@@ -77,7 +77,7 @@ namespace RewriteTest
         {
             var results = ConditionActionParser.ParseActionCondition(condition);
 
-            var expected = new GeneralExpression { Type = cond, Operation = operation, Invert = false, Variable = variable };
+            var expected = new GeneralExpression { Type = cond, Operation = operation, Invert = false, Operand = variable };
             Assert.True(CompareConditions(results, expected));
         }
 
@@ -86,7 +86,7 @@ namespace RewriteTest
         {
             if (i1.Operation != i2.Operation ||
                 i1.Type != i2.Type ||
-                i1.Variable != i2.Variable ||
+                i1.Operand != i2.Operand ||
                 i1.Invert != i2.Invert)
             {
                 return false;

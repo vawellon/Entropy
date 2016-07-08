@@ -5,6 +5,6 @@ namespace Rewrite.ConditionParser
 {
     public class Expression
     {
-        public string Variable { get; set; }
+        public string Operand { get; set; }
     }
 }

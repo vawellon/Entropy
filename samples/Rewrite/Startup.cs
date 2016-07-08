@@ -33,18 +33,7 @@ namespace Rewrite.Structure2
         {
 
             var rewriteBuilder = new UrlRewriteBuilder();
-            //rewriteBuilder.AddRules(RewriteConfiguration.AddRewriteFile("Rewrite.txt"));
-            Rule rule = new Rule
-            {
-                InitialRule = new ConditionParser.GeneralExpression { Type = ConditionType.Regex, Variable = "/hey/(.*)" },
-                Transforms = ConditionTestStringParser.ParseConditionTestString("/$1")
-            };
-            // Create rule
-            // take rule and add all conditions
-            // add rule to list
-
-            // rewriteBuilder.AddRewritePath(/hey/(.*));
-            rewriteBuilder.AddRule(rule);
+            rewriteBuilder.AddRules(RewriteConfiguration.AddRewriteFile("Rewrite.txt"));
             app.UseRewriter(rewriteBuilder.Build());
             app.Run(context => context.Response.WriteAsync(context.Request.Path));
         }

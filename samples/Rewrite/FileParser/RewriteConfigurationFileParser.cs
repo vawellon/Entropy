@@ -9,12 +9,12 @@ namespace Rewrite.FileParser
 {
     public static class RewriteConfigurationFileParser
     { 
-        public static List<Rule> Parse(Stream input)
+        public static List<ModRewriteRule> Parse(Stream input)
         {
             var reader = new StreamReader(input);
             var line = (string) null;
-            List<Rule> rules = new List<Rule>();
-            var currentRule = new Rule { Conditions = new List<Condition>() };
+            List<ModRewriteRule> rules = new List<ModRewriteRule>();
+            var currentRule = new ModRewriteRule { Conditions = new List<Condition>() };
             while ((line = reader.ReadLine()) != null) {
                 // TODO handle comments
                 List<string> tokens = RewriteTokenizer.TokenizeRule(line);
@@ -28,12 +28,12 @@ namespace Rewrite.FileParser
                 {
                     case "RewriteCond":
                         {
-                            List<ConditionTestStringSegment> matchesForCondition = ConditionTestStringParser.ParseConditionTestString(tokens[1]);
+                            Pattern matchesForCondition = ConditionTestStringParser.ParseConditionTestString(tokens[1]);
                             GeneralExpression ie = ConditionActionParser.ParseActionCondition(tokens[2]);
-                            List<string> flags = null;
+                            Flags flags = null;
                             if (tokens.Count == 4)
                             {
-                                flags = ConditionFlagParser.TokenizeAndParseFlags(tokens[3]);
+                                flags = FlagParser.TokenizeAndParseFlags(tokens[3]);
                             }
                             currentRule.Conditions.Add(new Condition(matchesForCondition, ie, flags ));
                             break;
@@ -43,15 +43,15 @@ namespace Rewrite.FileParser
                             // parse regex
                             // then do similar logic to the condition test string replacement
                             GeneralExpression ie = RuleRegexParser.ParseRuleRegex(tokens[1]);
-                            List<ConditionTestStringSegment> matchesForRule = ConditionTestStringParser.ParseConditionTestString(tokens[2]);
+                            Pattern matchesForRule = ConditionTestStringParser.ParseConditionTestString(tokens[2]);
                             if (tokens.Count == 4)
                             {
-                                currentRule.Flags = ConditionFlagParser.TokenizeAndParseFlags(tokens[3]);
+                                currentRule.Flags = FlagParser.TokenizeAndParseFlags(tokens[3]);
                             }
                             currentRule.InitialRule = ie;
                             currentRule.Transforms = matchesForRule;
                             rules.Add(currentRule);
-                            currentRule = new Rule { Conditions = new List<Condition>() };
+                            currentRule = new ModRewriteRule { Conditions = new List<Condition>() };
                             break;
                         }
                     default:

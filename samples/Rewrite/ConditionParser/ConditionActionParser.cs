@@ -21,13 +21,13 @@ namespace Rewrite.ConditionParser
             {
                 condition = String.Empty;
             }
-            var context = new ConditionParserContext(condition);
+            var context = new ModRewriteParserContext(condition);
             var results = new GeneralExpression();
             if (!context.Next())
             {
                 return null;
             }
-
+            // If we hit a !, make sure the condition is inverted when resolving the string
             if (context.Current == Not)
             {
                 results.Invert = true;
@@ -36,18 +36,20 @@ namespace Rewrite.ConditionParser
                     return null;
                 }
             }
-
+            // Control Block for strings. Set the operation and type fields based on the sign
             if (context.Current == Greater)
             {
                 if (!context.Next())
                 {
-                    throw new FormatException(); 
+                    // Dangling ">"
+                    throw new FormatException(context.Error()); 
                 }
                 if (context.Current == EqualSign)
                 {
                     if (!context.Next())
                     {
-                        throw new FormatException();
+                        // Dangling ">="
+                        throw new FormatException(context.Error());
                     }
                     results.Operation = OperationType.GreaterEqual;
                     results.Type = ConditionType.StringComp;
@@ -62,13 +64,15 @@ namespace Rewrite.ConditionParser
             {
                 if (!context.Next())
                 {
-                    throw new FormatException();
+                    // Dangling "<"
+                    throw new FormatException(context.Error());
                 }
                 if (context.Current == EqualSign)
                 {
                     if (!context.Next())
                     {
-                        throw new FormatException();
+                        // Dangling "<="
+                        throw new FormatException(context.Error());
                     }
                     results.Operation = OperationType.LessEqual;
                     results.Type = ConditionType.StringComp;
@@ -80,17 +84,19 @@ namespace Rewrite.ConditionParser
                 }
             }
             else if (context.Current == EqualSign)
-            { 
+            {
                 if (!context.Next())
                 {
-                    throw new FormatException();
+                    // Dangling "="
+                    throw new FormatException(context.Error());
                 }
                 results.Operation = OperationType.Equal;
                 results.Type = ConditionType.StringComp;
             }
             else if (context.Current == Dash)
             {
-                results = ParseAttributeTest(context);
+                // Look up Property or integer comparison portion.
+                results = ParseAttributeTest(context, results.Invert);
                 if (results.Type == ConditionType.PropertyTest)
                 {
                     return results;
@@ -99,104 +105,128 @@ namespace Rewrite.ConditionParser
             }
             else
             {
+                // Otherwise we assume it is regex.
                 results.Type = ConditionType.Regex; 
             }
-            // TODO fix this to do substring?
-            context.Mark();
-            while (context.Next()) ;
-            results.Variable = context.Capture();
-            return results;
+            // Capture the rest of the string guarantee validity.
+            results.Operand = condition.Substring(context.GetIndex());
+            if (IsValidActionCondition(results))
+            {
+                return results;
+            }
+            else
+            {
+                return null;
+            }
         }
 
-        public static GeneralExpression ParseAttributeTest(ConditionParserContext context)
+        public static GeneralExpression ParseAttributeTest(ModRewriteParserContext context, bool invert)
         {
+            if (!context.Next())
+            {
+                throw new FormatException(context.Error());
+            }
             if (context.Current == 'd')
             {
-                return new GeneralExpression { Type = ConditionType.PropertyTest, Operation = OperationType.Directory };
+                return new GeneralExpression { Type = ConditionType.PropertyTest, Operation = OperationType.Directory, Invert = invert };
             }
             else if (context.Current == 'f')
             {
-                return new GeneralExpression { Type = ConditionType.PropertyTest, Operation = OperationType.RegularFile };
+                return new GeneralExpression { Type = ConditionType.PropertyTest, Operation = OperationType.RegularFile, Invert = invert };
             }
             else if (context.Current == 'F')
             {
-                return new GeneralExpression { Type = ConditionType.PropertyTest, Operation = OperationType.ExistingFile };
+                return new GeneralExpression { Type = ConditionType.PropertyTest, Operation = OperationType.ExistingFile, Invert = invert };
             }
             else if (context.Current == 'h' || context.Current == 'L')
             {
-                return new GeneralExpression { Type = ConditionType.PropertyTest, Operation = OperationType.SymbolicLink };
+                return new GeneralExpression { Type = ConditionType.PropertyTest, Operation = OperationType.SymbolicLink, Invert = invert };
             }
             else if (context.Current == 's')
             {
-                return new GeneralExpression { Type = ConditionType.PropertyTest, Operation = OperationType.Size };
+                return new GeneralExpression { Type = ConditionType.PropertyTest, Operation = OperationType.Size, Invert = invert };
             }
             else if (context.Current == 'U')
             {
-                return new GeneralExpression { Type = ConditionType.PropertyTest, Operation = OperationType.ExistingUrl };
+                return new GeneralExpression { Type = ConditionType.PropertyTest, Operation = OperationType.ExistingUrl, Invert = invert };
             }
             else if (context.Current == 'x')
             {
-                return new GeneralExpression { Type = ConditionType.PropertyTest, Operation = OperationType.Executable };
+                return new GeneralExpression { Type = ConditionType.PropertyTest, Operation = OperationType.Executable, Invert = invert };
             }
             else if (context.Current == 'e')
             {
                 if (!context.Next() || context.Current != 'q')
                 {
                     // Illegal statement.
-                    throw new FormatException();
+                    throw new FormatException(context.Error());
                 }
-                return new GeneralExpression { Type = ConditionType.IntComp, Operation = OperationType.Equal };
+                return new GeneralExpression { Type = ConditionType.IntComp, Operation = OperationType.Equal, Invert = invert };
             }
             else if (context.Current == 'g')
             {
                 if (!context.Next())
                 {
-                    throw new FormatException();
+                    throw new FormatException(context.Error());
                 }
                 if (context.Current == 't')
                 {
-                    return new GeneralExpression { Type = ConditionType.IntComp, Operation = OperationType.Greater };
+                    return new GeneralExpression { Type = ConditionType.IntComp, Operation = OperationType.Greater, Invert = invert };
                 }
                 else if (context.Current == 'e')
                 {
-                    return new GeneralExpression { Type = ConditionType.IntComp, Operation = OperationType.GreaterEqual };
+                    return new GeneralExpression { Type = ConditionType.IntComp, Operation = OperationType.GreaterEqual, Invert = invert };
                 }
                 else
                 {
-                    throw new FormatException();
+                    throw new FormatException(context.Error());
                 }
             }
             else if (context.Current == 'l')
             {
                 if (!context.Next())
                 {
-                    return new GeneralExpression { Type = ConditionType.PropertyTest, Operation = OperationType.SymbolicLink };
+                    return new GeneralExpression { Type = ConditionType.PropertyTest, Operation = OperationType.SymbolicLink, Invert = invert };
                 }
                 if (context.Current == 't')
                 {
-                    return new GeneralExpression { Type = ConditionType.IntComp, Operation = OperationType.Less };
+                    return new GeneralExpression { Type = ConditionType.IntComp, Operation = OperationType.Less, Invert = invert };
                 }
                 else if (context.Current == 'e')
                 {
-                    return new GeneralExpression { Type = ConditionType.IntComp, Operation = OperationType.LessEqual };
+                    return new GeneralExpression { Type = ConditionType.IntComp, Operation = OperationType.LessEqual, Invert = invert };
                 }
                 else
                 {
-                    throw new FormatException();
+                    throw new FormatException(context.Error());
                 }
             }
             else if (context.Current == 'n')
             {
-                if (!context.Next() || context.Current == 'e')
+                if (!context.Next() || context.Current != 'e')
                 {
-                    throw new FormatException();
+                    throw new FormatException(context.Error());
                 }
-                return new GeneralExpression { Type = ConditionType.IntComp, Operation = OperationType.NotEqual };
+                return new GeneralExpression { Type = ConditionType.IntComp, Operation = OperationType.NotEqual, Invert = invert };
             }
             else
             {
-                throw new FormatException();
+                throw new FormatException(context.Error());
             }
+        }
+
+        private static bool IsValidActionCondition(GeneralExpression results)
+        {
+            if (results.Type == ConditionType.IntComp)
+            {
+                // If the type is an integer, verify operand is actually an int
+                int res;
+                if (!Int32.TryParse(results.Operand, out res))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }

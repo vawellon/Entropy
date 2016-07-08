@@ -15,11 +15,11 @@ namespace Rewrite.RuleParser
             }
             if (regex.StartsWith("!"))
             {
-                return new GeneralExpression { Invert = true, Variable = regex.Substring(1) };
+                return new GeneralExpression { Invert = true, Operand = regex.Substring(1) };
             }
             else
             {
-                return new GeneralExpression { Invert = false, Variable = regex};
+                return new GeneralExpression { Invert = false, Operand = regex};
             }
         }
     }

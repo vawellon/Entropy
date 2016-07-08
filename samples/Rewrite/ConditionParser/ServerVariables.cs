@@ -6,104 +6,153 @@ namespace Rewrite.ConditionParser
 {
     public static class ServerVariables
     {
-        public static string LookupServerVariable(HttpContext context, string variable)
+        public static ServerVariable ApplyServerVariable(HttpContext context, string variable)
         {
-            // TODO make this a dictionary.
             switch (variable)
             {
                 case "HTTP_ACCEPT":
-                    return null;
+                    return ServerVariable.HTTP_ACCEPT;
                 case "HTTP_COOKIE":
-                    return null;
+                    return ServerVariable.HTTP_COOKIE;
                 case "HTTP_FORWARDED":
-                    return null;
+                    return ServerVariable.HTTP_FORWARDED;
                 case "HTTP_HOST":
-                    return null;
+                    return ServerVariable.HTTP_HOST;
                 case "HTTP_PROXY_CONNECTION":
-                    return null;
+                    return ServerVariable.HTTP_PROXY_CONNECTION;
                 case "HTTP_REFERER":
-                    return null;
+                    return ServerVariable.HTTP_REFERER;
                 case "HTTP_USER_AGENT":
-                    return null;
+                    return ServerVariable.HTTP_USER_AGENT;
                 case "AUTH_TYPE":
-                    return null;
+                    return ServerVariable.AUTH_TYPE;
                 case "CONN_REMOTE_ADDR":
-                    return null;
+                    return ServerVariable.CONN_REMOTE_ADDR;
                 case "CONTEXT_PREFIX":
-                    return null;
+                    return ServerVariable.CONTEXT_PREFIX;
                 case "CONTEXT_DOCUMENT_ROOT":
-                    return null;
+                    return ServerVariable.CONTEXT_DOCUMENT_ROOT;
                 case "IPV6":
-                    return null;
+                    return ServerVariable.IPV6;
                 case "PATH_INFO":
-                    return null;
+                    return ServerVariable.PATH_INFO;
                 case "QUERY_STRING":
-                    return null;
+                    return ServerVariable.QUERY_STRING;
                 case "REMOTE_ADDR":
-                    return null;
+                    return ServerVariable.REMOTE_ADDR;
                 case "REMOTE_HOST":
-                    return null;
+                    return ServerVariable.REMOTE_HOST;
                 case "REMOTE_IDENT":
-                    return null;
+                    return ServerVariable.REMOTE_IDENT;
                 case "REMOTE_PORT":
-                    return null;
+                    return ServerVariable.REMOTE_PORT;
                 case "REMOTE_USER":
-                    return null;
+                    return ServerVariable.REMOTE_USER;
                 case "REQUEST_METHOD":
-                    return null;
+                    return ServerVariable.REQUEST_METHOD;
                 case "SCRIPT_FILENAME":
-                    return null;
+                    return ServerVariable.SCRIPT_FILENAME;
                 case "DOCUMENT_ROOT":
-                    return null;
+                    return ServerVariable.DOCUMENT_ROOT;
                 case "SCRIPT_GROUP":
-                    return null;
+                    return ServerVariable.SCRIPT_GROUP;
                 case "SCRIPT_USER":
-                    return null;
+                    return ServerVariable.SCRIPT_USER;
                 case "SERVER_ADDR":
-                    return null;
+                    return ServerVariable.SERVER_ADDR;
                 case "SERVER_ADMIN":
-                    return null;
+                    return ServerVariable.SERVER_ADMIN;
                 case "SERVER_NAME":
-                    return null;
+                    return ServerVariable.SERVER_NAME;
                 case "SERVER_PORT":
-                    return null;
+                    return ServerVariable.SERVER_PORT;
                 case "SERVER_PROTOCOL":
-                    return null;
+                    return ServerVariable.SERVER_PROTOCOL;
                 case "SERVER_SOFTWARE":
-                    return null;
+                    return ServerVariable.SERVER_SOFTWARE;
                 case "TIME_YEAR":
-                    return null;
+                    return ServerVariable.TIME_YEAR;
                 case "TIME_MON":
-                    return null;
+                    return ServerVariable.TIME_MON;
                 case "TIME_DAY":
-                    return null;
+                    return ServerVariable.TIME_DAY;
                 case "TIME_HOUR":
-                    return null;
+                    return ServerVariable.TIME_HOUR;
                 case "TIME_MIN":
-                    return null;
+                    return ServerVariable.TIME_MIN;
                 case "TIME_SEC":
-                    return null;
+                    return ServerVariable.TIME_SEC;
                 case "TIME_WDAY":
-                    return null;
+                    return ServerVariable.TIME_WDAY;
                 case "TIME":
-                    return null;
+                    return ServerVariable.TIME;
                 case "API_VERSION":
-                    return null;
+                    return ServerVariable.API_VERSION;
                 case "HTTPS":
-                    return null;
+                    return ServerVariable.HTTPS;
                 case "IS_SUBREQ":
-                    return null;
+                    return ServerVariable.IS_SUBREQ;
                 case "REQUEST_FILENAME":
-                    return null;
+                    return ServerVariable.REQUEST_FILENAME;
                 case "REQUEST_SCHEME":
-                    return null;
+                    return ServerVariable.REQUEST_SCHEME;
                 case "REQUEST_URI":
-                    return null;
+                    return ServerVariable.REQUEST_URI;
                 case "THE_REQUEST":
-                    return null;
+                    return ServerVariable.THE_REQUEST;
                 default:
-                    return null;
+                    return ServerVariable.NONE;
             }
         }
+    }
+
+    public enum ServerVariable
+    {   
+        NONE,
+        HTTP_ACCEPT,
+        HTTP_COOKIE,
+        HTTP_FORWARDED,
+        HTTP_HOST,
+        HTTP_PROXY_CONNECTION,
+        HTTP_REFERER,
+        HTTP_USER_AGENT,
+        AUTH_TYPE,
+        CONN_REMOTE_ADDR,
+        CONTEXT_PREFIX,
+        CONTEXT_DOCUMENT_ROOT,
+        IPV6,
+        PATH_INFO,
+        QUERY_STRING,
+        REMOTE_ADDR,
+        REMOTE_HOST,
+        REMOTE_IDENT,
+        REMOTE_PORT,
+        REMOTE_USER,
+        REQUEST_METHOD,
+        SCRIPT_FILENAME,
+        DOCUMENT_ROOT,
+        SCRIPT_GROUP,
+        SCRIPT_USER,
+        SERVER_ADDR,
+        SERVER_ADMIN,
+        SERVER_NAME,
+        SERVER_PORT,
+        SERVER_PROTOCOL,
+        SERVER_SOFTWARE,
+        TIME_YEAR,
+        TIME_MON,
+        TIME_DAY,
+        TIME_HOUR,
+        TIME_MIN,
+        TIME_SEC,
+        TIME_WDAY,
+        TIME,
+        API_VERSION,
+        HTTPS,
+        IS_SUBREQ,
+        REQUEST_FILENAME,
+        REQUEST_SCHEME,
+        REQUEST_URI,
+        THE_REQUEST
     }
 }

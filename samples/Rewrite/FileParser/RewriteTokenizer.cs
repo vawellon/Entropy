@@ -19,7 +19,7 @@ namespace Rewrite.FileParser
                 return null;
             }
             // TODO rename conditionParserContext to something more general
-            var context = new ConditionParserContext(rule);
+            var context = new ModRewriteParserContext(rule);
             if (!context.Next())
             {
                 return null;

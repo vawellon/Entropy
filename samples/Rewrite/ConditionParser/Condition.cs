@@ -6,10 +6,10 @@ namespace Rewrite.ConditionParser
 {
     public class Condition
     {
-        public List<ConditionTestStringSegment> TestStringSegments { get; }
+        public Pattern TestStringSegments { get; }
         public GeneralExpression ConditionRegex { get; }
-        public List<string> Flags { get; }
-        public Condition(List<ConditionTestStringSegment> testStringSegments, GeneralExpression conditionRegex, List<string> flags)
+        public Flags Flags { get; }
+        public Condition(Pattern testStringSegments, GeneralExpression conditionRegex, Flags flags)
         {
             TestStringSegments = testStringSegments;
             ConditionRegex = conditionRegex;

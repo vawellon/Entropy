@@ -15,20 +15,20 @@ namespace Rewrite.ConditionParser
         private const char CloseBrace = '}';
         // TODO comments about what the test string is.
         // TODO comments about what went wrong in exceptions
-        public static List<ConditionTestStringSegment> ParseConditionTestString(string testString)
+        public static Pattern ParseConditionTestString(string testString)
         {
             // TODO Create different parsers, regex, condition, etc.
             if (testString == null)
             {
                 testString = String.Empty;
             }
-            var context = new ConditionParserContext(testString);
-            var results = new List<ConditionTestStringSegment>();
+            var context = new ModRewriteParserContext(testString);
+            var results = new List<PatternSegment>();
             while (context.Next())
             {
                 if (context.Current == Percent)
                 {
-                    // check for server request param
+                    // This is a server parameter, parse for a condition variable
                     if (!context.Next())
                     {
                         throw new ArgumentException();
@@ -40,15 +40,16 @@ namespace Rewrite.ConditionParser
                 }
                 else if (context.Current == Dollar)
                 {
+                    // This is a parameter from the rule, verify that it is a number from 0 to 9 directly after it
+                    // and create a new Pattern Segment.
                     context.Next();
                     context.Mark();
-                    // variable
                     if (context.Current >= '0' && context.Current <= '9')
                     {
                         context.Next();
                         var ruleVariable = context.Capture();
                         context.Back();
-                        results.Add(new ConditionTestStringSegment { Type = TestStringType.RuleParameter, Variable = ruleVariable });
+                        results.Add(new PatternSegment(ruleVariable, SegmentType.RuleParameter));
                     }
                     else
                     {
@@ -57,24 +58,28 @@ namespace Rewrite.ConditionParser
                 }
                 else
                 {
+                    // Parse for literals, which will return on either the end of the test string 
+                    // or when it hits a special character
                     if (!ParseLiteral(context, results))
                     {
                         throw new ArgumentException();
                     }
                 }
             }
-            return results;
+            return new Pattern(results);
         }
 
         // pre: will only be called if context.Current is an unescaped '%' 
         // post: adds an application to the teststring results that will be concatinated on success
         // TODO make this return the condition test string segment and a bool
-        private static bool ParseConditionParameter(ConditionParserContext context, List<ConditionTestStringSegment> results)
+        private static bool ParseConditionParameter(ModRewriteParserContext context, List<PatternSegment> results)
         {
             if (context.Current == OpenBrace)
             {
+                // Start of a server variable
                 if (!context.Next())
                 {
+                    // Dangling {
                     throw new ArgumentException();
                 }
                 context.Mark();
@@ -82,23 +87,21 @@ namespace Rewrite.ConditionParser
                 {
                     if (!context.Next())
                     {
-                        // reached end of string, its bad no matter what because no condition string
+                        // No closing } for the server variable
                         throw new ArgumentException();
                     }
                     else if (context.Current == Colon)
                     {
-                        // Have a sub group in the server variable, do a lookup based on that.
-                        // This means I need to return a dict form the lookup?
+                        // Have a segmented look up Ex: HTTP:xxxx 
+                        // TODO handle this case
                     }
-                    // TODO check if character is valid?
                 }
 
-                // capture.
-                // TODO return result into list of operations.
+                // Need to verify server variable captured exists
                 var rawServerVariable = context.Capture();
-                if (IsValidVariable(context, rawServerVariable))
+                if (IsValidServerVariable(context, rawServerVariable))
                 {
-                    results.Add(new ConditionTestStringSegment { Type = TestStringType.ServerParameter, Variable = rawServerVariable });
+                    results.Add(new PatternSegment(rawServerVariable, SegmentType.ServerParameter));
                 }
                 else
                 {
@@ -113,14 +116,7 @@ namespace Rewrite.ConditionParser
                 context.Next();
                 var rawConditionParameter = context.Capture();
                 context.Back();
-                if (IsValidVariable(context, rawConditionParameter))
-                {
-                    results.Add(new ConditionTestStringSegment { Type = TestStringType.ConditionParameter, Variable = rawConditionParameter });
-                }
-                else
-                {
-                    return false;
-                }
+                results.Add(new PatternSegment(rawConditionParameter, SegmentType.ConditionParameter));
             }
             else
             {
@@ -130,28 +126,28 @@ namespace Rewrite.ConditionParser
             return true;
         }
 
-        private static bool ParseLiteral(ConditionParserContext context, List<ConditionTestStringSegment> results)
+        private static bool ParseLiteral(ModRewriteParserContext context, List<PatternSegment> results)
         {
             context.Mark();
-            string encoded;
+            string literal;
             while (true)
             {
                 if (context.Current == Percent || context.Current == Dollar)
                 {
-                    encoded = context.Capture();
+                    literal = context.Capture();
                     context.Back();
                     break;
                 }
                 if (!context.Next())
                 {
-                    encoded = context.Capture();
+                    literal = context.Capture();
                     break;
                 }
             }
-            if (IsValidLiteral(context, encoded))
+            if (IsValidLiteral(context, literal))
             {
                 // add results
-                results.Add(new ConditionTestStringSegment { Type = TestStringType.Literal, Variable = encoded });
+                results.Add(new PatternSegment(literal, SegmentType.Literal));
                 return true;
             }
             else
@@ -159,15 +155,15 @@ namespace Rewrite.ConditionParser
                 return false;
             }
         }
-        private static bool IsValidLiteral(ConditionParserContext context, string encoded)
+        private static bool IsValidLiteral(ModRewriteParserContext context, string literal)
         {
             // TODO
             return true;
         }
-        private static bool IsValidVariable(ConditionParserContext context, string encoded)
+        private static bool IsValidServerVariable(ModRewriteParserContext context, string variable)
         {
             // TODO
-            return true;
+            return ServerVariables.ApplyServerVariable(null, variable) != ServerVariable.NONE;
         }
     }
 }

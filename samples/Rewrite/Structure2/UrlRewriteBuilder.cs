@@ -6,17 +6,17 @@ namespace Rewrite.Structure2
 {
     public class UrlRewriteBuilder
     {
-        private List<Rule> _rules = new List<Rule>();
+        private List<ModRewriteRule> _rules = new List<ModRewriteRule>();
 
-        public List<Rule> Build()
+        public List<ModRewriteRule> Build()
         {
-            return new List<Rule>(_rules);
+            return new List<ModRewriteRule>(_rules);
         }
-        public void AddRules(List<Rule> rules)
+        public void AddRules(List<ModRewriteRule> rules)
         {
             _rules.AddRange(rules);
         }
-        public void AddRule(Rule rule)
+        public void AddRule(ModRewriteRule rule)
         {
             _rules.Add(rule);
         }

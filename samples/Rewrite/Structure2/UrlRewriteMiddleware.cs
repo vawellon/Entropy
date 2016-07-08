@@ -38,13 +38,13 @@ namespace Rewrite.Structure2
                 throw new ArgumentNullException(nameof(context));
             }
             // TODO move this all to a RuleEvaluator class in the rewrite project.
-            foreach (Rule rule in _options.Rules)
+            foreach (ModRewriteRule rule in _options.Rules)
             {
                 // 1. Check if the certain component of the path matches with the initial match.
                 // TODO logic for flags.
                 // TODO dont initialize the regex here for every request, have it initialized in 
                 //      either the parsing on lazily initialize and save here
-                Match results = Regex.Match(context.Request.Path.ToString(), rule.InitialRule.Variable, RegexOptions.None, TimeSpan.FromMilliseconds(1)); // TODO timeout
+                var results = Regex.Match(context.Request.Path.ToString(), rule.InitialRule.Operand, RegexOptions.None, TimeSpan.FromMilliseconds(1)); // TODO timeout
                 // If the match came back negative (the rule xor'd with whether or not it is inverted)
                 // go to the next rule.
                 if (!(results.Success ^ rule.InitialRule.Invert))
@@ -52,14 +52,14 @@ namespace Rewrite.Structure2
                     continue;
                 }
                 // 2. Go through all conditions and compare them to the created string
-                Match previous = Match.Empty;
+                var previous = Match.Empty;
                 var i = 0;
                 // TODO consider visitor pattern here.
                 for (i = 0; i < rule.Conditions.Count; i++)
                 {
-                    Condition condition = rule.Conditions[i];
-                    string concatTestString = CollectTestStringFromContext(condition.TestStringSegments, context, previous, results);
-                    bool pass = false;
+                    var condition = rule.Conditions[i];
+                    var concatTestString = condition.TestStringSegments.ApplyPattern(context, results, previous);
+                    var pass = false;
                     switch (condition.ConditionRegex.Type)
                     {
                         case ConditionType.PropertyTest:
@@ -72,7 +72,7 @@ namespace Rewrite.Structure2
                             pass = CheckStringCondition(concatTestString, condition, context);
                             break;
                         case ConditionType.Regex:
-                            previous = Regex.Match(concatTestString, condition.ConditionRegex.Variable);
+                            previous = Regex.Match(concatTestString, condition.ConditionRegex.Operand);
                             pass = previous.Success;
                             break;
                     }
@@ -86,48 +86,11 @@ namespace Rewrite.Structure2
                     continue;
                 }
                 // at this point, our rule passed, we can now apply the on match function
-                string result = CollectTestStringFromContext(rule.Transforms, context, previous, results);
+                var result = rule.Transforms.ApplyPattern(context, results, previous);
                 // for now just replace the path, TODO add flag options here
                 context.Request.Path = new PathString(result);
             }
             await _next(context);
-        }
-
-        private string CollectTestStringFromContext(List<ConditionTestStringSegment> testStrings, HttpContext context, Match previous, Match ruleResults)
-        {
-            var res = new StringBuilder();
-            foreach (ConditionTestStringSegment segment in testStrings)
-            {
-                // TODO handle case when segment.Variable is 0.
-                switch (segment.Type)
-                {
-                    case TestStringType.Literal:
-                        res.Append(segment.Variable);
-                        break;
-                    case TestStringType.ServerParameter:
-                        var serverParam = ServerVariables.LookupServerVariable(context, segment.Variable);
-                        if (serverParam != null)
-                        {
-                            res.Append(serverParam);
-                        }
-                        break;
-                    case TestStringType.RuleParameter:
-                        var ruleParam = ruleResults.Groups[segment.Variable];
-                        if (ruleParam != null)
-                        {
-                            res.Append(ruleParam);
-                        }
-                        break;
-                    case TestStringType.ConditionParameter:
-                        var condParam = previous.Groups[segment.Variable];
-                        if (condParam != null)
-                        {
-                            res.Append(condParam);
-                        }
-                        break;
-                }
-            }
-            return res.ToString();
         }
 
         private bool CheckFileCondition(string testString, Condition condition, HttpContext context)
